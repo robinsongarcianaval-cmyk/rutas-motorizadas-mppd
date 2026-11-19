@@ -111,14 +111,22 @@
                     </div>
                 </div>
 
-                <!-- 2. Selección Múltiple de Dependencias Frecuentes -->
-                <div>
-                    <div class="flex items-center justify-between mb-2">
+                <!-- 2. Selección Múltiple de Dependencias Frecuentes con Filtro de Búsqueda -->
+                <div class="space-y-2">
+                    <div class="flex items-center justify-between">
                         <label class="block text-xs uppercase font-bold text-stone-200">
                             2. Dependencias y Entes a Visitar <span class="text-amber-400 font-normal">(Selección múltiple)</span>
                         </label>
                         <span id="contador-seleccionadas" class="text-xs text-amber-400 font-bold">0 seleccionadas</span>
                     </div>
+
+                    <div class="relative flex items-center">
+                        <input type="text" id="filtro-dep-input" oninput="filtrarDependencias()" placeholder="Buscar dependencia o ente (Ej: SAIME, PDVSA, Armada, Transporte)..." class="w-full bg-[#060708] border border-stone-800 rounded-lg pl-3 pr-16 py-2 text-xs text-stone-100 placeholder-stone-500 focus:outline-none focus:border-amber-400">
+                        <button type="button" id="btn-limpiar-filtro" onclick="limpiarFiltroDependencias()" class="hidden absolute right-2 text-[11px] font-bold text-amber-400 hover:text-amber-300 bg-[#14171c] border border-stone-700 px-2 py-0.5 rounded transition">
+                            Limpiar
+                        </button>
+                    </div>
+
                     <div id="dependencias-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 max-h-60 overflow-y-auto p-2 bg-[#060708] rounded-lg border border-stone-800"></div>
                 </div>
 
@@ -259,21 +267,65 @@
             "Valencia"
         ];
 
-        // LISTA PROVISIONAL DE DEPENDENCIAS FRECUENTES
+        // LISTA OFICIAL DE DEPENDENCIAS Y ENTES
         const DEPENDENCIAS_FRECUENTES = [
-            "Vicepresidencia Sectorial de Soberanía Política",
-            "Comando Estratégico Operacional (CEOFANB)",
-            "Comandancia General del Ejército Bolivariano",
-            "Comandancia General de la Armada Bolivariana",
-            "Comandancia General de la Aviación Militar Bolivariana",
-            "Comandancia General de la Guardia Nacional Bolivariana",
-            "Comandancia General de la Milicia Bolivariana",
-            "Inspectoría General de la FANB",
-            "Contraloría General de la FANB",
-            "Dirección General de Contrainteligencia Militar (DGCIM)",
-            "Servicio Bolivariano de Inteligencia Nacional (SEBIN)",
-            "Vicepresidencia de la República",
-            "Despacho de la Presidencia"
+            "Ejército Bolivariano",
+            "Armada Bolivariana",
+            "Aviación Militar Bolivariana",
+            "Guardia Nacional Bolivariana",
+            "Milicia Bolivariana",
+            "MPP Despacho de la Presidencia y Seguimiento de la Gestión de Gobierno",
+            "MPP Relaciones Interiores, Justicia y Paz",
+            "MPP Relaciones Exteriores y Comercio Internacional",
+            "MPP Servicio Penitenciario",
+            "MPP Economía y Finanzas",
+            "MPP Planificación",
+            "MPP Hidrocarburos",
+            "MPP Industria y Comercio Nacional",
+            "MPP Desarrollo Minero Ecológico e Industrias Básicas",
+            "MPP Agricultura Productiva y Tierras",
+            "MPP Pesca y Acuicultura",
+            "MPP Alimentación",
+            "MPP Turismo",
+            "MPP Obras Públicas",
+            "MPP Transporte",
+            "MPP Hábitat y Vivienda",
+            "MPP Energía Eléctrica",
+            "MPP Atención de las Aguas",
+            "MPP Ecosocialismo",
+            "MPP Educación",
+            "MPP Educación Universitaria",
+            "MPP Ciencia y la Tecnología",
+            "MPP Salud",
+            "MPP Proceso Social del Trabajo",
+            "MPP Comunas, Movimientos Sociales y Agricultura Urbana",
+            "MPP Mujer y la Igualdad de Género",
+            "MPP Juventud",
+            "MPP Deporte",
+            "MPP Pueblos Indígenas",
+            "MPP Adultos Mayores, Abuelas y Abuelos de la Patria",
+            "MPP Comunicación e Información",
+            "MPP Cultura",
+            "SAIME",
+            "CICPC",
+            "SAREN",
+            "INTT",
+            "BCV",
+            "SENIAT",
+            "SUDEBAN",
+            "BDV",
+            "IVSS",
+            "INN",
+            "PDVSA",
+            "CORPOELEC",
+            "CANTV",
+            "CONATEL",
+            "INE",
+            "IGVSB",
+            "CAVIM",
+            "CGR",
+            "DGCIM",
+            "SEBIN"
         ];
 
         const USUARIOS_BASE = [
@@ -293,6 +345,7 @@
         let pilotoSeleccionado = "";
         let dependenciasSeleccionadas = [];
         let dependenciasManuales = [];
+        let filtroDependencias = "";
         let rutasActivas = [];
         let watchIdGPS = null;
         let rutaActivaDocId = localStorage.getItem("mppd_ruta_activa_doc_id") || null;
@@ -320,6 +373,14 @@
                 .replace(/[\u0300-\u036f]/g, "")
                 .toLowerCase()
                 .replace(/[^a-z0-9]/g, "")
+                .trim();
+        }
+
+        function normalizarBusqueda(texto) {
+            return (texto || "")
+                .normalize("NFD")
+                .replace(/[\u0300-\u036f]/g, "")
+                .toLowerCase()
                 .trim();
         }
 
@@ -355,7 +416,68 @@
             const btn = document.getElementById("btn-login-huella");
             const objetivo = obtenerUsuarioObjetivoHuella();
             if (btn && window.PublicKeyCredential && objetivo) {
-                btn.innerText = `Ingresar con Huella Digital (${objetivo.name})`; btn.classList.remove("hidden"); } else if (btn) { btn.classList.add("hidden"); } };  document.addEventListener("DOMContentLoaded", () => { renderizarOpcionesFormulario(); actualizarBotonHuellaLogin(); if (usuarioActual) { mostrarPanel(); } else { aplicarFondoPantalla(true); } });  window.iniciarSesion = function(e) { e.preventDefault(); const entradaUser = document.getElementById("username").value; const pass = document.getElementById("password").value.trim(); const encontrado = buscarUsuarioPorEntrada(entradaUser);  if (!encontrado \vert{}\vert{} encontrado.password !== pass) { alert("Usuario o contraseña incorrectos. Clave inicial: 1234"); return; }  usuarioActual = { id: encontrado.id, name: encontrado.name, role: encontrado.role }; localStorage.setItem("mppd_moto_user", JSON.stringify(usuarioActual)); pilotoSeleccionado = ""; mostrarPanel(); };  function base64UrlToBuffer(base64url) { const base64 = base64url.replace(/-/g, "+").replace(/_/g, "/"); const binStr = atob(base64); const bytes = new Uint8Array(binStr.length); for (let i = 0; i < binStr.length; i++) bytes[i] = binStr.charCodeAt(i); return bytes.buffer; }  function bufferToBase64Url(buffer) { const bytes = new Uint8Array(buffer); let binStr = ""; for (let i = 0; i < bytes.byteLength; i++) binStr += String.fromCharCode(bytes[i]); return btoa(binStr).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, ""); }  window.registrarHuellaDigital = async function() { if (!usuarioActual) return; if (!window.PublicKeyCredential \vert{}\vert{} !navigator.credentials) { alert("Este dispositivo o navegador no soporta acceso biométrico web."); return; } try { const challenge = crypto.getRandomValues(new Uint8Array(32)); const userId = new TextEncoder().encode(`mppd_moto_${usuarioActual.id}`);
+                btn.innerText = `Ingresar con Huella Digital (${objetivo.name})`;
+                btn.classList.remove("hidden");
+            } else if (btn) {
+                btn.classList.add("hidden");
+            }
+        };
+
+        document.addEventListener("DOMContentLoaded", () => {
+            renderizarOpcionesFormulario();
+            actualizarBotonHuellaLogin();
+            if (usuarioActual) {
+                mostrarPanel();
+            } else {
+                aplicarFondoPantalla(true);
+            }
+        });
+
+        window.iniciarSesion = function(e) {
+            e.preventDefault();
+            const entradaUser = document.getElementById("username").value;
+            const pass = document.getElementById("password").value.trim();
+            const encontrado = buscarUsuarioPorEntrada(entradaUser);
+
+            if (!encontrado || encontrado.password !== pass) {
+                alert("Usuario o contraseña incorrectos. Clave inicial: 1234");
+                return;
+            }
+
+            usuarioActual = {
+                id: encontrado.id,
+                name: encontrado.name,
+                role: encontrado.role
+            };
+            localStorage.setItem("mppd_moto_user", JSON.stringify(usuarioActual));
+            pilotoSeleccionado = "";
+            mostrarPanel();
+        };
+
+        function base64UrlToBuffer(base64url) {
+            const base64 = base64url.replace(/-/g, "+").replace(/_/g, "/");
+            const binStr = atob(base64);
+            const bytes = new Uint8Array(binStr.length);
+            for (let i = 0; i < binStr.length; i++) bytes[i] = binStr.charCodeAt(i);
+            return bytes.buffer;
+        }
+
+        function bufferToBase64Url(buffer) {
+            const bytes = new Uint8Array(buffer);
+            let binStr = "";
+            for (let i = 0; i < bytes.byteLength; i++) binStr += String.fromCharCode(bytes[i]);
+            return btoa(binStr).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+        }
+
+        window.registrarHuellaDigital = async function() {
+            if (!usuarioActual) return;
+            if (!window.PublicKeyCredential || !navigator.credentials) {
+                alert("Este dispositivo o navegador no soporta acceso biométrico web.");
+                return;
+            }
+            try {
+                const challenge = crypto.getRandomValues(new Uint8Array(32));
+                const userId = new TextEncoder().encode(`mppd_moto_${usuarioActual.id}`);
                 const credential = await navigator.credentials.create({
                     publicKey: {
                         challenge,
@@ -486,7 +608,8 @@
             document.getElementById("user-bar").classList.remove("hidden");
 
             const etiquetaRol = usuarioActual.role === "motorizado"
-                ? `${usuarioActual.name} (Parrillero)` : `${usuarioActual.name}`;
+                ? `${usuarioActual.name} (Parrillero)`
+                : `${usuarioActual.name}`;
             document.getElementById("nav-user").innerText = etiquetaRol;
 
             const panelMoto = document.getElementById("motorizado-panel");
@@ -536,6 +659,55 @@
             });
         }
 
+        window.filtrarDependencias = function() {
+            const input = document.getElementById("filtro-dep-input");
+            const btnLimpiar = document.getElementById("btn-limpiar-filtro");
+            filtroDependencias = input ? input.value : "";
+            if (btnLimpiar) {
+                btnLimpiar.classList.toggle("hidden", !filtroDependencias.trim());
+            }
+            renderizarDependenciasGrid();
+        };
+
+        window.limpiarFiltroDependencias = function() {
+            const input = document.getElementById("filtro-dep-input");
+            if (input) input.value = "";
+            filtroDependencias = "";
+            document.getElementById("btn-limpiar-filtro")?.classList.add("hidden");
+            renderizarDependenciasGrid();
+        };
+
+        function renderizarDependenciasGrid() {
+            const depGrid = document.getElementById("dependencias-grid");
+            if (!depGrid) return;
+            depGrid.innerHTML = "";
+
+            const consulta = normalizarBusqueda(filtroDependencias);
+            const filtradas = consulta
+                ? DEPENDENCIAS_FRECUENTES.filter(dep => normalizarBusqueda(dep).includes(consulta))
+                : DEPENDENCIAS_FRECUENTES;
+
+            if (filtradas.length === 0) {
+                depGrid.innerHTML = `<p class="col-span-full text-xs text-stone-400 text-center py-4">No se encontraron dependencias con "${escapeHTML(filtroDependencias)}". Puede agregarla manualmente en el paso 3.</p>`;
+                return;
+            }
+
+            filtradas.forEach(dep => {
+                const marcada = dependenciasSeleccionadas.includes(dep);
+                const label = document.createElement("label");
+                label.className = marcada
+                    ? "flex items-start gap-2 p-2.5 rounded-lg bg-amber-500/15 border border-amber-500/50 cursor-pointer text-xs text-amber-200 font-semibold"
+                    : "flex items-start gap-2 p-2.5 rounded-lg bg-[#0d0f12] border border-stone-800 hover:border-stone-700 cursor-pointer text-xs text-stone-300";
+
+                label.innerHTML = `
+                    <input type="checkbox" ${marcada ? "checked" : ""} class="mt-0.5 accent-amber-500">
+                    <span>${escapeHTML(dep)}</span>
+                `;
+                label.querySelector("input").onchange = () => toggleDependencia(dep);
+                depGrid.appendChild(label);
+            });
+        }
+
         function renderizarOpcionesFormulario() {
             const pilotosGrid = document.getElementById("pilotos-grid");
             pilotosGrid.innerHTML = "";
@@ -565,23 +737,7 @@
             btnSolo.onclick = () => seleccionarPiloto("Sin piloto (Solo)");
             pilotosGrid.appendChild(btnSolo);
 
-            const depGrid = document.getElementById("dependencias-grid");
-            depGrid.innerHTML = "";
-            DEPENDENCIAS_FRECUENTES.forEach(dep => {
-                const marcada = dependenciasSeleccionadas.includes(dep);
-                const label = document.createElement("label");
-                label.className = marcada
-                    ? "flex items-start gap-2 p-2.5 rounded-lg bg-amber-500/15 border border-amber-500/50 cursor-pointer text-xs text-amber-200 font-semibold"
-                    : "flex items-start gap-2 p-2.5 rounded-lg bg-[#0d0f12] border border-stone-800 hover:border-stone-700 cursor-pointer text-xs text-stone-300";
-
-                label.innerHTML = `
-                    <input type="checkbox" ${marcada ? "checked" : ""} class="mt-0.5 accent-amber-500">
-                    <span>${escapeHTML(dep)}</span>
-                `;
-                label.querySelector("input").onchange = () => toggleDependencia(dep);
-                depGrid.appendChild(label);
-            });
-
+            renderizarDependenciasGrid();
             actualizarContadorDependencias();
         }
 
@@ -596,7 +752,8 @@
             } else {
                 dependenciasSeleccionadas.push(dep);
             }
-            renderizarOpcionesFormulario();
+            renderizarDependenciasGrid();
+            actualizarContadorDependencias();
         }
 
         window.agregarDependenciaManual = function() {
@@ -852,7 +1009,7 @@
                 let destinosHtml = `<div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">`;
                 (ruta.destinos || []).forEach((d, idx) => {
                     destinosHtml += `
-                        <div onclick="marcarDestinoEntregado('${escapeHTML(ruta.docId)}',${idx})" class="flex items-center justify-between p-2 rounded-lg border cursor-pointer transition ${
+                        <div onclick="marcarDestinoEntregado('${escapeHTML(ruta.docId)}', ${idx})" class="flex items-center justify-between p-2 rounded-lg border cursor-pointer transition ${
                             d.entregado
                                 ? "bg-amber-500/15 border-amber-500/50 text-amber-200"
                                 : "bg-[#0d0f12] border-stone-800 text-stone-300 hover:border-amber-500/40"
@@ -888,7 +1045,7 @@
                                 </span>
                             </div>
                             <p class="text-[11px] text-stone-400">
-                                Salida: ${escapeHTML(ruta.fecha)} •${escapeHTML(ruta.horaSalida)} | Avance: <strong class="text-stone-200">${entregados}/${total} entregados</strong>
+                                Salida: ${escapeHTML(ruta.fecha)} • ${escapeHTML(ruta.horaSalida)} | Avance: <strong class="text-stone-200">${entregados}/${total} entregados</strong>
                             </p>
                             <p class="text-xs text-stone-300">Detalle: ${escapeHTML(ruta.detalle)}</p>
                         </div>
@@ -920,3 +1077,28 @@
                                 ${
                                     ruta.gpsActivo
                                         ? `<div class="rounded-lg overflow-hidden border border-stone-800 h-52 bg-stone-900">
+                                            <iframe
+                                                title="Ubicación en tiempo real"
+                                                src="${embedMapsUrl}"
+                                                class="w-full h-full border-0"
+                                                loading="lazy"
+                                                referrerpolicy="no-referrer-when-downgrade">
+                                            </iframe>
+                                           </div>`
+                                        : ""
+                                }
+                               </div>`
+                            : ""
+                    }
+
+                    <div>
+                        <p class="text-[11px] uppercase font-bold text-stone-400 mb-1">Dependencias asignadas (Parrillero toca para marcar entrega):</p>
+                        ${destinosHtml}
+                    </div>
+                `;
+                cont.appendChild(card);
+            });
+        }
+    </script>
+</body>
+</html>
