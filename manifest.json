@@ -1,0 +1,22 @@
+{
+  "name": "Control de Rutas Motorizadas - MPPD",
+  "short_name": "Rutas MPPD",
+  "description": "Seguimiento en tiempo real de comisiones motorizadas del Despacho del MPPD",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#060708",
+  "theme_color": "#090a0c",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "./escudo-mppd.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "./escudo-mppd.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

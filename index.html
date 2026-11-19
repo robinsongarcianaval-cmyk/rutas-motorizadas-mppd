@@ -1,0 +1,989 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#090a0c">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Rutas MPPD">
+    <link rel="manifest" href="./manifest.json">
+    <link rel="apple-touch-icon" href="./escudo-mppd.png">
+    <title>Control de Rutas Motorizadas - MPPD</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-[#060708] text-stone-100 min-h-screen flex flex-col justify-between selection:bg-amber-600 selection:text-stone-950">
+
+    <!-- Header Institucional con Escudo del Ministerio -->
+    <header class="bg-[#0d0f12] border-b border-stone-800 p-4 shadow-xl">
+        <div class="max-w-5xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-3">
+            <div class="flex items-center space-x-3 text-center sm:text-left">
+                <img src="./escudo-mppd.png" alt="Escudo MPPD" class="w-12 h-12 object-contain" onerror="this.style.display='none'">
+                <div>
+                    <span class="text-[11px] font-bold tracking-wider text-amber-400 uppercase">República Bolivariana de Venezuela</span>
+                    <h1 class="text-sm font-extrabold text-stone-100">Ministerio del Poder Popular para la Defensa</h1>
+                    <p class="text-xs text-stone-400">Control de Rutas y Entregas Motorizadas • Monitoreo en Tiempo Real</p>
+                </div>
+            </div>
+            <div id="user-bar" class="hidden flex items-center gap-2 flex-wrap justify-center">
+                <span id="cloud-status" class="text-[11px] font-semibold px-2.5 py-1 rounded-full bg-amber-500/15 border border-amber-500/40 text-amber-300">
+                    Nube Conectada
+                </span>
+                <span id="nav-user" class="text-xs font-bold px-2.5 py-1 rounded bg-[#14171c] border border-amber-500/40 text-amber-300"></span>
+                <button onclick="abrirModalSeguridad()" class="bg-[#181b20] hover:bg-amber-500/20 text-amber-300 border border-amber-500/40 text-xs font-bold px-2.5 py-1.5 rounded transition">
+                    Seguridad
+                </button>
+                <button onclick="cerrarSesion()" class="bg-red-700 hover:bg-red-600 text-white text-xs font-bold px-3 py-1.5 rounded border border-red-500/40 transition">
+                    Salir
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Contenido Principal -->
+    <main class="max-w-5xl w-full mx-auto p-4 flex-grow">
+
+        <!-- PANTALLA 1: ACCESO -->
+        <section id="login-section" class="max-w-md mx-auto bg-[#0d0f12] p-6 rounded-xl border border-stone-800 shadow-2xl mt-8">
+            <div class="border-l-4 border-red-600 pl-3 mb-5">
+                <h2 class="text-lg font-extrabold text-stone-100">Inicio de Sesión</h2>
+                <p class="text-xs text-stone-400">El motorizado que inicia sesión asume el control como Parrillero</p>
+            </div>
+
+            <form id="login-form" onsubmit="iniciarSesion(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs uppercase font-bold text-amber-400 mb-1">Usuario</label>
+                    <input type="text" id="username" required oninput="actualizarBotonHuellaLogin()" placeholder="Ej: Jefe, Liendo, Delgado, Ortega, Suárez, Valencia" class="w-full bg-[#060708] border border-stone-800 rounded-lg p-2.5 text-sm text-stone-100 placeholder-stone-600 focus:outline-none focus:border-amber-400">
+                </div>
+                <div>
+                    <label class="block text-xs uppercase font-bold text-amber-400 mb-1">Contraseña</label>
+                    <input type="password" id="password" required placeholder="Clave inicial: 1234" class="w-full bg-[#060708] border border-stone-800 rounded-lg p-2.5 text-sm text-stone-100 placeholder-stone-600 focus:outline-none focus:border-amber-400">
+                </div>
+                <button type="submit" class="w-full bg-amber-500 hover:bg-amber-400 text-stone-950 font-extrabold py-2.5 rounded-lg text-sm border border-amber-300/40 shadow-md transition">
+                    Ingresar al Sistema
+                </button>
+                <button type="button" id="btn-login-huella" onclick="ingresarConHuella()" class="hidden w-full bg-[#171010] hover:bg-red-950/70 text-red-300 border border-red-700/60 font-bold py-2.5 rounded-lg text-xs transition">
+                    Ingresar con Huella Digital
+                </button>
+            </form>
+
+            <div class="mt-5 pt-4 border-t border-stone-800/90 text-xs text-stone-400 text-center space-y-1">
+                <p>Clave inicial general: <strong class="text-amber-300">1234</strong></p>
+                <p>Supervisión: <strong class="text-stone-200">Jefe</strong></p>
+                <p>Motorizados: <strong class="text-amber-300">Liendo</strong>, <strong class="text-amber-300">Delgado</strong>, <strong class="text-amber-300">Ortega</strong>, <strong class="text-amber-300">Suárez</strong>, <strong class="text-amber-300">Valencia</strong></p>
+            </div>
+        </section>
+
+        <!-- PANTALLA 2: PANEL PRINCIPAL -->
+        <section id="app-section" class="hidden space-y-6">
+
+            <!-- SECCIÓN EXCLUSIVA PARA EL PARRILLERO: PREPARAR MISIÓN / SALIDA -->
+            <div id="motorizado-panel" class="hidden bg-[#0d0f12] p-5 rounded-xl border border-stone-800 shadow-xl space-y-5">
+                <div class="border-b border-stone-800 pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div class="border-l-4 border-amber-500 pl-3">
+                        <h2 class="text-base font-extrabold text-amber-400">Configurar Salida / Hoja de Ruta</h2>
+                        <p class="text-xs text-stone-400">Usted opera esta misión como <strong class="text-amber-300">Parrillero</strong> (control de entregas y GPS)</p>
+                    </div>
+                    <span id="gps-badge" class="text-[11px] font-bold px-2.5 py-1 rounded-full bg-[#171010] text-red-300 border border-red-800/60">
+                        GPS: Inactivo
+                    </span>
+                </div>
+
+                <!-- 1. Identificación de Parrillero (Fijo) y Selección de Piloto -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-[#060708] p-3.5 rounded-xl border border-stone-800">
+                    <div>
+                        <label class="block text-[11px] uppercase font-bold text-stone-400 mb-1.5">
+                            Parrillero (Operador de la App y GPS)
+                        </label>
+                        <div class="flex items-center justify-between bg-[#12151a] border border-amber-500/50 rounded-lg px-3 py-2.5">
+                            <span id="parrillero-asignado" class="text-sm font-extrabold text-amber-400"></span>
+                            <span class="text-[10px] uppercase font-bold bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded border border-amber-500/30">
+                                Activo en sesión
+                            </span>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-[11px] uppercase font-bold text-stone-200 mb-1.5">
+                            1. Seleccione a su compañero (Piloto)
+                        </label>
+                        <div id="pilotos-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-1.5"></div>
+                    </div>
+                </div>
+
+                <!-- 2. Selección Múltiple de Dependencias Frecuentes -->
+                <div>
+                    <div class="flex items-center justify-between mb-2">
+                        <label class="block text-xs uppercase font-bold text-stone-200">
+                            2. Dependencias y Entes a Visitar <span class="text-amber-400 font-normal">(Selección múltiple)</span>
+                        </label>
+                        <span id="contador-seleccionadas" class="text-xs text-amber-400 font-bold">0 seleccionadas</span>
+                    </div>
+                    <div id="dependencias-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 max-h-60 overflow-y-auto p-2 bg-[#060708] rounded-lg border border-stone-800"></div>
+                </div>
+
+                <!-- 3. Agregar Dependencia Manualmente -->
+                <div>
+                    <label class="block text-xs uppercase font-bold text-stone-200 mb-1.5">
+                        3. ¿Alguna dependencia no está en la lista? Escríbala aquí:
+                    </label>
+                    <div class="flex gap-2">
+                        <input type="text" id="manual-dep-input" placeholder="Ej: Ministerio de Relaciones Exteriores / Comando..." class="flex-grow bg-[#060708] border border-stone-800 rounded-lg px-3 py-2 text-xs text-stone-100 placeholder-stone-600 focus:outline-none focus:border-amber-400">
+                        <button type="button" onclick="agregarDependenciaManual()" class="bg-[#181b20] hover:bg-amber-500/20 text-amber-300 border border-amber-500/40 px-4 py-2 rounded-lg text-xs font-bold transition">
+                            + Agregar
+                        </button>
+                    </div>
+                    <div id="manual-deps-list" class="flex flex-wrap gap-1.5 mt-2"></div>
+                </div>
+
+                <!-- 4. Observación / Cantidad de sobres o puntos -->
+                <div>
+                    <label class="block text-xs uppercase font-bold text-stone-200 mb-1.5">4. Detalle de Documentación (Opcional)</label>
+                    <input type="text" id="ruta-detalle" placeholder="Ej: 4 puntos de cuenta y 2 oficios urgentes" class="w-full bg-[#060708] border border-stone-800 rounded-lg px-3 py-2 text-xs text-stone-100 placeholder-stone-600 focus:outline-none focus:border-amber-400">
+                </div>
+
+                <!-- Botón de Activación de Ruta y GPS en Tiempo Real -->
+                <div class="pt-2 flex flex-col sm:flex-row gap-3">
+                    <button type="button" id="btn-iniciar-ruta" onclick="iniciarRutaConGPS()" class="flex-1 bg-amber-500 hover:bg-amber-400 text-stone-950 font-extrabold py-3 px-4 rounded-lg text-xs uppercase tracking-wide border border-amber-300/40 shadow-lg transition">
+                        Iniciar Ruta y Activar Ubicación en Tiempo Real
+                    </button>
+                    <button type="button" id="btn-finalizar-ruta" onclick="finalizarRutaGPS()" class="hidden bg-red-700 hover:bg-red-600 text-white font-bold py-3 px-4 rounded-lg text-xs border border-red-500/40 transition">
+                        Finalizar Misión y Detener GPS
+                    </button>
+                </div>
+            </div>
+
+            <!-- SECCIÓN DE MONITOREO EN TIEMPO REAL -->
+            <div class="bg-[#0d0f12] p-5 rounded-xl border border-stone-800 shadow-xl space-y-4">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-stone-800 pb-3 gap-2">
+                    <div class="border-l-4 border-red-600 pl-3">
+                        <h2 class="text-base font-extrabold text-stone-100 flex items-center gap-2">
+                            <span>Monitoreo de Comisiones y Entregas en Tiempo Real</span>
+                            <span class="h-2.5 w-2.5 rounded-full bg-amber-400 animate-pulse"></span>
+                        </h2>
+                        <p class="text-xs text-stone-400">Identificación de Parrillero y Piloto, progreso de entregas y Google Maps en vivo</p>
+                    </div>
+                    <span id="total-rutas" class="text-xs bg-[#060708] border border-stone-800 px-3 py-1 rounded-full text-amber-300 font-semibold">
+                        Sincronizando...
+                    </span>
+                </div>
+
+                <div id="rutas-container" class="space-y-4">
+                    <p class="text-xs text-stone-500 text-center py-6">Conectando con la nube en tiempo real...</p>
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- Modal de Seguridad: Cambio de Contraseña y Huella Digital -->
+    <div id="security-modal" class="fixed inset-0 z-50 hidden bg-black/85 flex items-center justify-center p-4">
+        <div class="bg-[#0d0f12] border border-stone-700 rounded-xl max-w-md w-full p-5 shadow-2xl space-y-4">
+            <div class="flex items-center justify-between border-b border-stone-800 pb-3">
+                <div>
+                    <h4 class="text-sm font-extrabold text-amber-400">Seguridad de la Cuenta</h4>
+                    <p id="security-user-label" class="text-xs text-stone-400"></p>
+                </div>
+                <button onclick="cerrarModalSeguridad()" class="text-xs text-stone-300 hover:text-white bg-[#060708] border border-stone-700 px-2.5 py-1 rounded">
+                    Cerrar
+                </button>
+            </div>
+
+            <form id="change-password-form" onsubmit="cambiarContrasena(event)" class="space-y-3">
+                <div>
+                    <label class="block text-xs uppercase font-bold text-stone-300 mb-1">Nueva Contraseña</label>
+                    <input type="password" id="new-password" required minlength="4" placeholder="Mínimo 4 caracteres" class="w-full bg-[#060708] border border-stone-800 rounded p-2 text-sm text-stone-100 focus:outline-none focus:border-amber-400">
+                </div>
+                <div>
+                    <label class="block text-xs uppercase font-bold text-stone-300 mb-1">Confirmar Nueva Contraseña</label>
+                    <input type="password" id="confirm-password" required minlength="4" class="w-full bg-[#060708] border border-stone-800 rounded p-2 text-sm text-stone-100 focus:outline-none focus:border-amber-400">
+                </div>
+                <button type="submit" class="w-full bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold p-2 rounded text-xs border border-amber-300/40 transition">
+                    Guardar Nueva Contraseña
+                </button>
+            </form>
+
+            <div id="biometric-box" class="border-t border-stone-800 pt-3 space-y-2">
+                <p class="text-xs font-bold text-stone-200">Acceso Biométrico (Huella Digital)</p>
+                <p id="biometric-status" class="text-[11px] text-stone-400"></p>
+                <button type="button" onclick="registrarHuellaDigital()" class="w-full bg-[#171010] hover:bg-red-950/70 text-red-300 border border-red-700/60 font-bold p-2 rounded text-xs transition">
+                    Configurar / Actualizar Huella Digital
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="text-center p-4 text-xs text-stone-500 border-t border-stone-900 bg-[#08090b] space-y-1">
+        <div>Ministerio del Poder Popular para la Defensa &copy; 2026</div>
+        <div class="text-[10px] text-stone-600">Aplicación creada por el T.N. Robinson García López</div>
+    </footer>
+
+    <!-- Registro del Service Worker para instalación en teléfono (PWA) -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js').catch((err) => {
+                    console.warn('Service Worker no registrado:', err);
+                });
+            });
+        }
+    </script>
+
+    <!-- SDK de Firebase Firestore en Tiempo Real -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAdooSNDsYBWgkJ5c92V6aXXi3oTc-gOsc",
+            authDomain: "control-gestion-direccion.firebaseapp.com",
+            projectId: "control-gestion-direccion",
+            storageBucket: "control-gestion-direccion.firebasestorage.app",
+            messagingSenderId: "1072471114079",
+            appId: "1:1072471114079:web:1e6a6166e8e65ab32ff6ea",
+            measurementId: "G-NFY5Z57CWT"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const rutasRef = collection(db, "rutas_motorizadas_mppd");
+
+        // 5 MOTORIZADOS DEFINIDOS
+        const MOTORIZADOS = [
+            "Liendo",
+            "Delgado",
+            "Ortega",
+            "Suárez",
+            "Valencia"
+        ];
+
+        // LISTA PROVISIONAL DE DEPENDENCIAS FRECUENTES (Se actualizará cuando nos envíe su lista definitiva)
+        const DEPENDENCIAS_FRECUENTES = [
+            "Vicepresidencia Sectorial de Soberanía Política",
+            "Comando Estratégico Operacional (CEOFANB)",
+            "Comandancia General del Ejército Bolivariano",
+            "Comandancia General de la Armada Bolivariana",
+            "Comandancia General de la Aviación Militar Bolivariana",
+            "Comandancia General de la Guardia Nacional Bolivariana",
+            "Comandancia General de la Milicia Bolivariana",
+            "Inspectoría General de la FANB",
+            "Contraloría General de la FANB",
+            "Dirección General de Contrainteligencia Militar (DGCIM)",
+            "Servicio Bolivariano de Inteligencia Nacional (SEBIN)",
+            "Vicepresidencia de la República",
+            "Despacho de la Presidencia"
+        ];
+
+        const USUARIOS_BASE = [
+            { id: "jefe", name: "Jefe", role: "jefe", defaultPassword: "1234" },
+            { id: "liendo", name: "Liendo", role: "motorizado", defaultPassword: "1234" },
+            { id: "delgado", name: "Delgado", role: "motorizado", defaultPassword: "1234" },
+            { id: "ortega", name: "Ortega", role: "motorizado", defaultPassword: "1234" },
+            { id: "suarez", name: "Suárez", role: "motorizado", defaultPassword: "1234" },
+            { id: "valencia", name: "Valencia", role: "motorizado", defaultPassword: "1234" }
+        ];
+
+        let passwordsPersonalizadas = JSON.parse(localStorage.getItem("mppd_moto_passwords")) || {};
+        let huellasRegistradas = JSON.parse(localStorage.getItem("mppd_moto_biometrics")) || {};
+        let usuarioActual = JSON.parse(localStorage.getItem("mppd_moto_user")) || null;
+        let pilotoSeleccionado = "";
+        let dependenciasSeleccionadas = [];
+        let dependenciasManuales = [];
+        let rutasActivas = [];
+        let watchIdGPS = null;
+        let rutaActivaDocId = localStorage.getItem("mppd_ruta_activa_doc_id") || null;
+        let unsubscribeRutas = null;
+        let ultimaCoordenadaEnviada = { lat: null, lng: null, tiempo: 0 };
+
+        function normalizarTexto(texto) {
+            return (texto || "")
+                .normalize("NFD")
+                .replace(/[\u0300-\u036f]/g, "")
+                .toLowerCase()
+                .replace(/[^a-z0-9]/g, "")
+                .trim();
+        }
+
+        function obtenerUsuariosActivos() {
+            return USUARIOS_BASE.map(u => ({
+                ...u,
+                password: passwordsPersonalizadas[u.id] || u.defaultPassword
+            }));
+        }
+
+        function buscarUsuarioPorEntrada(entrada) {
+            const limpia = normalizarTexto(entrada);
+            if (!limpia) return null;
+            return obtenerUsuariosActivos().find(u =>
+                normalizarTexto(u.id) === limpia || normalizarTexto(u.name) === limpia
+            ) || null;
+        }
+
+        function obtenerUsuarioObjetivoHuella() {
+            const entrada = document.getElementById("username")?.value || "";
+            const encontrado = buscarUsuarioPorEntrada(entrada);
+            if (encontrado && huellasRegistradas[encontrado.id]) {
+                return encontrado;
+            }
+            const ultimoId = localStorage.getItem("mppd_moto_last_bio_user");
+            if (ultimoId && huellasRegistradas[ultimoId]) {
+                return obtenerUsuariosActivos().find(u => u.id === ultimoId) || null;
+            }
+            return null;
+        }
+
+        window.actualizarBotonHuellaLogin = function() {
+            const btn = document.getElementById("btn-login-huella");
+            const objetivo = obtenerUsuarioObjetivoHuella();
+            if (btn && window.PublicKeyCredential && objetivo) {
+                btn.innerText = `Ingresar con Huella Digital (${objetivo.name})`;
+                btn.classList.remove("hidden");
+            } else if (btn) {
+                btn.classList.add("hidden");
+            }
+        };
+
+        document.addEventListener("DOMContentLoaded", () => {
+            renderizarOpcionesFormulario();
+            actualizarBotonHuellaLogin();
+            if (usuarioActual) {
+                mostrarPanel();
+            }
+        });
+
+        window.iniciarSesion = function(e) {
+            e.preventDefault();
+            const entradaUser = document.getElementById("username").value;
+            const pass = document.getElementById("password").value.trim();
+            const encontrado = buscarUsuarioPorEntrada(entradaUser);
+
+            if (!encontrado || encontrado.password !== pass) {
+                alert("Usuario o contraseña incorrectos. Clave inicial: 1234");
+                return;
+            }
+
+            usuarioActual = {
+                id: encontrado.id,
+                name: encontrado.name,
+                role: encontrado.role
+            };
+            localStorage.setItem("mppd_moto_user", JSON.stringify(usuarioActual));
+            pilotoSeleccionado = "";
+            mostrarPanel();
+        };
+
+        function base64UrlToBuffer(base64url) {
+            const base64 = base64url.replace(/-/g, "+").replace(/_/g, "/");
+            const binStr = atob(base64);
+            const bytes = new Uint8Array(binStr.length);
+            for (let i = 0; i < binStr.length; i++) bytes[i] = binStr.charCodeAt(i);
+            return bytes.buffer;
+        }
+
+        function bufferToBase64Url(buffer) {
+            const bytes = new Uint8Array(buffer);
+            let binStr = "";
+            for (let i = 0; i < bytes.byteLength; i++) binStr += String.fromCharCode(bytes[i]);
+            return btoa(binStr).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+        }
+
+        window.registrarHuellaDigital = async function() {
+            if (!usuarioActual) return;
+            if (!window.PublicKeyCredential || !navigator.credentials) {
+                alert("Este dispositivo o navegador no soporta acceso biométrico web.");
+                return;
+            }
+            try {
+                const challenge = crypto.getRandomValues(new Uint8Array(32));
+                const userId = new TextEncoder().encode(`mppd_moto_${usuarioActual.id}`);
+                const credential = await navigator.credentials.create({
+                    publicKey: {
+                        challenge,
+                        rp: { name: "Control de Rutas Motorizadas - MPPD" },
+                        user: {
+                            id: userId,
+                            name: usuarioActual.id,
+                            displayName: usuarioActual.name
+                        },
+                        pubKeyCredParams: [{ alg: -7, type: "public-key" }, { alg: -257, type: "public-key" }],
+                        authenticatorSelection: {
+                            authenticatorAttachment: "platform",
+                            userVerification: "required"
+                        },
+                        timeout: 60000
+                    }
+                });
+                if (credential && credential.rawId) {
+                    huellasRegistradas[usuarioActual.id] = bufferToBase64Url(credential.rawId);
+                    localStorage.setItem("mppd_moto_biometrics", JSON.stringify(huellasRegistradas));
+                    localStorage.setItem("mppd_moto_last_bio_user", usuarioActual.id);
+                    actualizarBotonHuellaLogin();
+                    actualizarEstadoBiometricoModal();
+                    alert(`Huella digital configurada para ${usuarioActual.name} en este dispositivo.`);
+                }
+            } catch (error) {
+                console.error("Error configurando huella:", error);
+                alert("No se pudo registrar la huella digital. Verifique que el dispositivo tenga biometría activa y esté en HTTPS.");
+            }
+        };
+
+        window.ingresarConHuella = async function() {
+            const objetivo = obtenerUsuarioObjetivoHuella();
+            const credId = objetivo ? huellasRegistradas[objetivo.id] : null;
+            if (!objetivo || !credId || !window.PublicKeyCredential) {
+                alert("Primero configure la huella digital desde la opción Seguridad de su cuenta.");
+                return;
+            }
+            try {
+                const challenge = crypto.getRandomValues(new Uint8Array(32));
+                const assertion = await navigator.credentials.get({
+                    publicKey: {
+                        challenge,
+                        allowCredentials: [{
+                            id: base64UrlToBuffer(credId),
+                            type: "public-key"
+                        }],
+                        userVerification: "required",
+                        timeout: 60000
+                    }
+                });
+                if (assertion) {
+                    usuarioActual = {
+                        id: objetivo.id,
+                        name: objetivo.name,
+                        role: objetivo.role
+                    };
+                    localStorage.setItem("mppd_moto_user", JSON.stringify(usuarioActual));
+                    localStorage.setItem("mppd_moto_last_bio_user", objetivo.id);
+                    pilotoSeleccionado = "";
+                    mostrarPanel();
+                }
+            } catch (error) {
+                console.error("Error al validar huella:", error);
+                alert("No se validó la huella digital. Puede ingresar con su contraseña.");
+            }
+        };
+
+        function actualizarEstadoBiometricoModal() {
+            const status = document.getElementById("biometric-status");
+            if (!usuarioActual || !status) return;
+            const activa = Boolean(huellasRegistradas[usuarioActual.id]);
+            status.innerText = activa
+                ? `Estado: Huella digital activa para ${usuarioActual.name} en este dispositivo.`
+                : `Estado: Aún no configurada para ${usuarioActual.name} en este dispositivo.`;
+        }
+
+        window.abrirModalSeguridad = function() {
+            if (!usuarioActual) return;
+            document.getElementById("security-user-label").innerText = `Usuario: ${usuarioActual.name}`;
+            document.getElementById("change-password-form").reset();
+            actualizarEstadoBiometricoModal();
+            document.getElementById("security-modal").classList.remove("hidden");
+        };
+
+        window.cerrarModalSeguridad = function() {
+            document.getElementById("security-modal").classList.add("hidden");
+        };
+
+        window.cambiarContrasena = function(e) {
+            e.preventDefault();
+            if (!usuarioActual) return;
+            const nueva = document.getElementById("new-password").value.trim();
+            const confirmar = document.getElementById("confirm-password").value.trim();
+            if (nueva.length < 4) {
+                alert("La contraseña debe tener al menos 4 caracteres.");
+                return;
+            }
+            if (nueva !== confirmar) {
+                alert("Las contraseñas no coinciden.");
+                return;
+            }
+            passwordsPersonalizadas[usuarioActual.id] = nueva;
+            localStorage.setItem("mppd_moto_passwords", JSON.stringify(passwordsPersonalizadas));
+            cerrarModalSeguridad();
+            alert("Contraseña actualizada correctamente.");
+        };
+
+        window.cerrarSesion = function() {
+            detenerSeguimientoGPS();
+            if (unsubscribeRutas) unsubscribeRutas();
+            usuarioActual = null;
+            pilotoSeleccionado = "";
+            localStorage.removeItem("mppd_moto_user");
+            document.getElementById("app-section").classList.add("hidden");
+            document.getElementById("user-bar").classList.add("hidden");
+            document.getElementById("login-section").classList.remove("hidden");
+            document.getElementById("login-form").reset();
+            actualizarBotonHuellaLogin();
+        };
+
+        function mostrarPanel() {
+            document.getElementById("login-section").classList.add("hidden");
+            document.getElementById("app-section").classList.remove("hidden");
+            document.getElementById("user-bar").classList.remove("hidden");
+
+            const etiquetaRol = usuarioActual.role === "motorizado"
+                ? `${usuarioActual.name} (Parrillero)`
+                : `${usuarioActual.name}`;
+            document.getElementById("nav-user").innerText = etiquetaRol;
+
+            const panelMoto = document.getElementById("motorizado-panel");
+            if (usuarioActual.role === "motorizado") {
+                panelMoto.classList.remove("hidden");
+                document.getElementById("parrillero-asignado").innerText = usuarioActual.name;
+                renderizarOpcionesFormulario();
+
+                if (rutaActivaDocId) {
+                    document.getElementById("btn-iniciar-ruta").classList.add("hidden");
+                    document.getElementById("btn-finalizar-ruta").classList.remove("hidden");
+                    document.getElementById("gps-badge").innerText = "GPS: Transmitiendo en vivo";
+                    document.getElementById("gps-badge").className = "text-[11px] font-bold px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/50";
+                    activarWatchPosition(rutaActivaDocId);
+                }
+            } else {
+                panelMoto.classList.add("hidden");
+            }
+
+            escucharRutasEnTiempoReal();
+        }
+
+        function escucharRutasEnTiempoReal() {
+            if (unsubscribeRutas) unsubscribeRutas();
+            const q = query(rutasRef, orderBy("timestamp", "desc"));
+
+            unsubscribeRutas = onSnapshot(q, (snapshot) => {
+                rutasActivas = [];
+                snapshot.forEach((docSnap) => {
+                    rutasActivas.push({ docId: docSnap.id, ...docSnap.data() });
+                });
+
+                const badgeNube = document.getElementById("cloud-status");
+                if (badgeNube) {
+                    badgeNube.innerText = "En vivo";
+                    badgeNube.className = "text-[11px] font-semibold px-2.5 py-1 rounded-full bg-amber-500/15 border border-amber-500/40 text-amber-300";
+                }
+
+                renderizarRutas();
+            }, (error) => {
+                console.error("Error conectando rutas en tiempo real:", error);
+                const badgeNube = document.getElementById("cloud-status");
+                if (badgeNube) {
+                    badgeNube.innerText = "Sin conexión nube";
+                    badgeNube.className = "text-[11px] font-semibold px-2.5 py-1 rounded-full bg-red-950 border border-red-800 text-red-300";
+                }
+            });
+        }
+
+        function renderizarOpcionesFormulario() {
+            const pilotosGrid = document.getElementById("pilotos-grid");
+            pilotosGrid.innerHTML = "";
+
+            const parrilleroActual = usuarioActual ? usuarioActual.name : "";
+            const companerosDisponibles = MOTORIZADOS.filter(m => m !== parrilleroActual);
+
+            companerosDisponibles.forEach(nombre => {
+                const activo = pilotoSeleccionado === nombre;
+                const btn = document.createElement("button");
+                btn.type = "button";
+                btn.className = activo
+                    ? "px-2.5 py-2 rounded-lg text-xs font-extrabold bg-amber-500 text-stone-950 border border-amber-300 transition shadow"
+                    : "px-2.5 py-2 rounded-lg text-xs font-semibold bg-[#0d0f12] text-stone-300 border border-stone-800 hover:border-amber-500/50 transition";
+                btn.innerText = nombre;
+                btn.onclick = () => seleccionarPiloto(nombre);
+                pilotosGrid.appendChild(btn);
+            });
+
+            // Opción en caso de salir solo (sin piloto acompañante)
+            const soloActivo = pilotoSeleccionado === "Sin piloto (Solo)";
+            const btnSolo = document.createElement("button");
+            btnSolo.type = "button";
+            btnSolo.className = soloActivo
+                ? "px-2.5 py-2 rounded-lg text-xs font-extrabold bg-red-700 text-white border border-red-400 transition shadow"
+                : "px-2.5 py-2 rounded-lg text-xs font-semibold bg-[#0d0f12] text-stone-400 border border-stone-800 hover:border-red-700/60 transition";
+            btnSolo.innerText = "Solo";
+            btnSolo.onclick = () => seleccionarPiloto("Sin piloto (Solo)");
+            pilotosGrid.appendChild(btnSolo);
+
+            const depGrid = document.getElementById("dependencias-grid");
+            depGrid.innerHTML = "";
+            DEPENDENCIAS_FRECUENTES.forEach(dep => {
+                const marcada = dependenciasSeleccionadas.includes(dep);
+                const label = document.createElement("label");
+                label.className = marcada
+                    ? "flex items-start gap-2 p-2.5 rounded-lg bg-amber-500/15 border border-amber-500/50 cursor-pointer text-xs text-amber-200 font-semibold"
+                    : "flex items-start gap-2 p-2.5 rounded-lg bg-[#0d0f12] border border-stone-800 hover:border-stone-700 cursor-pointer text-xs text-stone-300";
+
+                label.innerHTML = `
+                    <input type="checkbox" ${marcada ? "checked" : ""} class="mt-0.5 accent-amber-500">
+                    <span>${dep}</span>
+                `;
+                label.querySelector("input").onchange = () => toggleDependencia(dep);
+                depGrid.appendChild(label);
+            });
+
+            actualizarContadorDependencias();
+        }
+
+        function seleccionarPiloto(nombre) {
+            pilotoSeleccionado = (pilotoSeleccionado === nombre) ? "" : nombre;
+            renderizarOpcionesFormulario();
+        }
+
+        function toggleDependencia(dep) {
+            if (dependenciasSeleccionadas.includes(dep)) {
+                dependenciasSeleccionadas = dependenciasSeleccionadas.filter(d => d !== dep);
+            } else {
+                dependenciasSeleccionadas.push(dep);
+            }
+            renderizarOpcionesFormulario();
+        }
+
+        window.agregarDependenciaManual = function() {
+            const input = document.getElementById("manual-dep-input");
+            const valor = input.value.trim();
+            if (!valor) return;
+
+            if (!dependenciasManuales.includes(valor) && !dependenciasSeleccionadas.includes(valor)) {
+                dependenciasManuales.push(valor);
+            }
+            input.value = "";
+            renderizarDependenciasManuales();
+            actualizarContadorDependencias();
+        };
+
+        window.eliminarDependenciaManual = function(nombre) {
+            dependenciasManuales = dependenciasManuales.filter(d => d !== nombre);
+            renderizarDependenciasManuales();
+            actualizarContadorDependencias();
+        };
+
+        function renderizarDependenciasManuales() {
+            const cont = document.getElementById("manual-deps-list");
+            cont.innerHTML = "";
+            dependenciasManuales.forEach(dep => {
+                const tag = document.createElement("span");
+                tag.className = "inline-flex items-center gap-1.5 bg-amber-500/15 text-amber-300 border border-amber-500/40 px-2.5 py-1 rounded-full text-xs";
+                tag.innerHTML = `
+                    <span>${dep}</span>
+                    <button type="button" onclick="eliminarDependenciaManual('${dep.replace(/'/g, "\\'")}')" class="font-bold text-red-400 hover:text-red-300">&times;</button>
+                `;
+                cont.appendChild(tag);
+            });
+        }
+
+        function actualizarContadorDependencias() {
+            const total = dependenciasSeleccionadas.length + dependenciasManuales.length;
+            document.getElementById("contador-seleccionadas").innerText = `${total} seleccionadas`;
+        }
+
+        window.iniciarRutaConGPS = async function() {
+            if (!usuarioActual || usuarioActual.role !== "motorizado") return;
+
+            if (!pilotoSeleccionado) {
+                alert("Seleccione a su compañero Piloto (o pulse 'Solo' si sale sin acompañante).");
+                return;
+            }
+
+            const todasLasDeps = [...dependenciasSeleccionadas, ...dependenciasManuales];
+            if (todasLasDeps.length === 0) {
+                alert("Seleccione o escriba al menos una dependencia destino.");
+                return;
+            }
+
+            if (!navigator.geolocation) {
+                alert("Este navegador o teléfono no soporta geolocalización GPS.");
+                return;
+            }
+
+            const btnIniciar = document.getElementById("btn-iniciar-ruta");
+            btnIniciar.disabled = true;
+            btnIniciar.innerText = "Activando GPS y conectando...";
+
+            const parrillero = usuarioActual.name;
+            const piloto = pilotoSeleccionado;
+            const detalle = document.getElementById("ruta-detalle").value.trim();
+
+            const listaComision = piloto === "Sin piloto (Solo)"
+                ? [parrillero]
+                : [parrillero, piloto];
+
+            try {
+                const docCreado = await addDoc(rutasRef, {
+                    timestamp: Date.now(),
+                    parrillero: parrillero,
+                    piloto: piloto,
+                    motorizados: listaComision,
+                    destinos: todasLasDeps.map(nombre => ({ nombre, entregado: false, horaEntrega: null })),
+                    detalle: detalle || "Sin observaciones adicionales",
+                    horaSalida: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+                    fecha: new Date().toLocaleDateString(),
+                    gpsActivo: true,
+                    lat: null,
+                    lng: null,
+                    ultimaActualizacionGPS: "Obteniendo señal GPS..."
+                });
+
+                rutaActivaDocId = docCreado.id;
+                localStorage.setItem("mppd_ruta_activa_doc_id", rutaActivaDocId);
+
+                document.getElementById("btn-iniciar-ruta").classList.add("hidden");
+                document.getElementById("btn-finalizar-ruta").classList.remove("hidden");
+                document.getElementById("gps-badge").innerText = "GPS: Transmitiendo en vivo";
+                document.getElementById("gps-badge").className = "text-[11px] font-bold px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/50";
+
+                activarWatchPosition(rutaActivaDocId);
+            } catch (error) {
+                console.error("Error iniciando ruta en Firebase:", error);
+                alert("No se pudo iniciar la ruta en la nube. Verifique su conexión a internet.");
+            } finally {
+                btnIniciar.disabled = false;
+                btnIniciar.innerText = "Iniciar Ruta y Activar Ubicación en Tiempo Real";
+            }
+        };
+
+        function activarWatchPosition(docId) {
+            detenerSeguimientoGPS();
+            watchIdGPS = navigator.geolocation.watchPosition(
+                async (pos) => {
+                    const lat = pos.coords.latitude.toFixed(6);
+                    const lng = pos.coords.longitude.toFixed(6);
+                    const ahora = Date.now();
+
+                    if (
+                        ultimaCoordenadaEnviada.lat === lat &&
+                        ultimaCoordenadaEnviada.lng === lng &&
+                        ahora - ultimaCoordenadaEnviada.tiempo < 8000
+                    ) {
+                        return;
+                    }
+
+                    ultimaCoordenadaEnviada = { lat, lng, tiempo: ahora };
+
+                    try {
+                        await updateDoc(doc(db, "rutas_motorizadas_mppd", docId), {
+                            lat,
+                            lng,
+                            gpsActivo: true,
+                            ultimaActualizacionGPS: new Date().toLocaleTimeString([], {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                                second: "2-digit"
+                            })
+                        });
+                    } catch (e) {
+                        console.warn("Error actualizando coordenada GPS:", e);
+                    }
+                },
+                async (err) => {
+                    console.warn("Error GPS:", err);
+                    try {
+                        await updateDoc(doc(db, "rutas_motorizadas_mppd", docId), {
+                            ultimaActualizacionGPS: "Permiso GPS pendiente o señal débil"
+                        });
+                    } catch (e) {}
+                },
+                {
+                    enableHighAccuracy: true,
+                    maximumAge: 4000,
+                    timeout: 15000
+                }
+            );
+        }
+
+        function detenerSeguimientoGPS() {
+            if (watchIdGPS !== null && navigator.geolocation) {
+                navigator.geolocation.clearWatch(watchIdGPS);
+                watchIdGPS = null;
+            }
+        }
+
+        window.finalizarRutaGPS = async function() {
+            detenerSeguimientoGPS();
+            if (rutaActivaDocId) {
+                try {
+                    await updateDoc(doc(db, "rutas_motorizadas_mppd", rutaActivaDocId), {
+                        gpsActivo: false,
+                        ultimaActualizacionGPS: `Finalizada a las ${new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`
+                    });
+                } catch (e) {
+                    console.warn("Error finalizando ruta:", e);
+                }
+            }
+            rutaActivaDocId = null;
+            localStorage.removeItem("mppd_ruta_activa_doc_id");
+
+            document.getElementById("btn-iniciar-ruta").classList.remove("hidden");
+            document.getElementById("btn-finalizar-ruta").classList.add("hidden");
+            document.getElementById("gps-badge").innerText = "GPS: Inactivo";
+            document.getElementById("gps-badge").className = "text-[11px] font-bold px-2.5 py-1 rounded-full bg-[#171010] text-red-300 border border-red-800/60";
+        };
+
+        window.marcarDestinoEntregado = async function(docId, idxDestino) {
+            const ruta = rutasActivas.find(r => r.docId === docId);
+            if (!ruta) return;
+
+            // Solo el parrillero dueño de la ruta o el Jefe pueden marcar entregas
+            if (
+                usuarioActual.role === "motorizado" &&
+                ruta.parrillero &&
+                ruta.parrillero !== usuarioActual.name
+            ) {
+                alert(`Solo el parrillero de esta comisión (${ruta.parrillero}) puede actualizar estas entregas.`);
+                return;
+            }
+
+            const destinosActualizados = ruta.destinos.map((d, i) => {
+                if (i !== idxDestino) return d;
+                const nuevoEstado = !d.entregado;
+                return {
+                    ...d,
+                    entregado: nuevoEstado,
+                    horaEntrega: nuevoEstado
+                        ? new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+                        : null
+                };
+            });
+
+            try {
+                await updateDoc(doc(db, "rutas_motorizadas_mppd", docId), {
+                    destinos: destinosActualizados
+                });
+            } catch (e) {
+                alert("No se pudo actualizar el estado de la entrega.");
+            }
+        };
+
+        window.eliminarRuta = async function(docId) {
+            if (!confirm("¿Eliminar este registro de ruta de la nube?")) return;
+            try {
+                await deleteDoc(doc(db, "rutas_motorizadas_mppd", docId));
+            } catch (e) {
+                alert("No se pudo eliminar el registro.");
+            }
+        };
+
+        function renderizarRutas() {
+            const cont = document.getElementById("rutas-container");
+            document.getElementById("total-rutas").innerText = `${rutasActivas.length} rutas registradas`;
+
+            if (rutasActivas.length === 0) {
+                cont.innerHTML = `<p class="text-xs text-stone-500 text-center py-6">No hay rutas motorizadas registradas aún.</p>`;
+                return;
+            }
+
+            cont.innerHTML = "";
+            rutasActivas.forEach(ruta => {
+                const entregados = (ruta.destinos || []).filter(d => d.entregado).length;
+                const total = (ruta.destinos || []).length;
+                const tieneCoordenadas = ruta.lat && ruta.lng;
+                const urlMaps = tieneCoordenadas
+                    ? `https://www.google.com/maps?q=${ruta.lat},${ruta.lng}`
+                    : null;
+                const embedMapsUrl = tieneCoordenadas
+                    ? `https://maps.google.com/maps?q=${ruta.lat},${ruta.lng}&z=16&output=embed`
+                    : null;
+
+                const parrilleroNombre = ruta.parrillero || (ruta.motorizados && ruta.motorizados[0]) || "Sin especificar";
+                const pilotoNombre = ruta.piloto || (ruta.motorizados && ruta.motorizados[1]) || "Sin piloto (Solo)";
+
+                const card = document.createElement("div");
+                card.className = "bg-[#060708] border border-stone-800 rounded-xl p-4 space-y-3";
+
+                let destinosHtml = `<div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">`;
+                (ruta.destinos || []).forEach((d, idx) => {
+                    destinosHtml += `
+                        <div onclick="marcarDestinoEntregado('${ruta.docId}', ${idx})" class="flex items-center justify-between p-2 rounded-lg border cursor-pointer transition ${
+                            d.entregado
+                                ? "bg-amber-500/15 border-amber-500/50 text-amber-200"
+                                : "bg-[#0d0f12] border-stone-800 text-stone-300 hover:border-amber-500/40"
+                        }">
+                            <div class="flex items-center gap-2 text-xs">
+                                <input type="checkbox" ${d.entregado ? "checked" : ""} class="accent-amber-500 pointer-events-none">
+                                <span class="${d.entregado ? "line-through opacity-80" : ""}">${d.nombre}</span>
+                            </div>
+                            <span class="text-[10px] font-semibold whitespace-nowrap ml-2">
+                                ${d.entregado ? `Entregado ${d.horaEntrega}` : "Pendiente"}
+                            </span>
+                        </div>
+                    `;
+                });
+                destinosHtml += `</div>`;
+
+                card.innerHTML = `
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-stone-800 pb-2.5">
+                        <div class="space-y-1">
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <span class="text-xs px-2.5 py-1 rounded bg-amber-500/20 border border-amber-500/50 text-amber-300 font-extrabold">
+                                    PARRILLERO (APP/GPS): ${parrilleroNombre}
+                                </span>
+                                <span class="text-xs px-2.5 py-1 rounded bg-[#14171c] border border-stone-700 text-stone-200 font-bold">
+                                    PILOTO: ${pilotoNombre}
+                                </span>
+                                <span class="text-[11px] px-2 py-0.5 rounded-full font-bold ${
+                                    ruta.gpsActivo
+                                        ? "bg-amber-500/20 text-amber-300 border border-amber-500/50"
+                                        : "bg-red-950/60 text-red-300 border border-red-800/60"
+                                }">
+                                    ${ruta.gpsActivo ? "EN RUTA (GPS EN VIVO)" : "FINALIZADA"}
+                                </span>
+                            </div>
+                            <p class="text-[11px] text-stone-400">
+                                Salida: ${ruta.fecha} • ${ruta.horaSalida} | Avance: <strong class="text-stone-200">${entregados}/${total} entregados</strong>
+                            </p>
+                            <p class="text-xs text-stone-300">Detalle: ${ruta.detalle}</p>
+                        </div>
+
+                        <div class="flex items-center gap-2 flex-wrap">
+                            ${
+                                urlMaps
+                                    ? `<a href="${urlMaps}" target="_blank" rel="noopener noreferrer" class="bg-amber-500 hover:bg-amber-400 text-stone-950 text-xs font-bold px-3.5 py-2 rounded-lg border border-amber-300/40 transition shadow">
+                                        Abrir en Google Maps
+                                       </a>`
+                                    : `<span class="text-[11px] text-stone-400 bg-[#0d0f12] border border-stone-800 px-3 py-1.5 rounded-lg">
+                                        ${ruta.ultimaActualizacionGPS}
+                                       </span>`
+                            }
+                            ${
+                                usuarioActual.role === "jefe"
+                                    ? `<button onclick="eliminarRuta('${ruta.docId}')" class="bg-red-900/50 hover:bg-red-700 text-red-200 border border-red-700/60 text-xs font-bold px-2.5 py-2 rounded-lg transition">X</button>`
+                                    : ""
+                            }
+                        </div>
+                    </div>
+
+                    ${
+                        tieneCoordenadas
+                            ? `<div class="space-y-2">
+                                <p class="text-[11px] text-stone-400">
+                                    Coordenada GPS en vivo (${parrilleroNombre}): <span class="text-amber-300 font-mono">${ruta.lat}, ${ruta.lng}</span> • Actualizado: <strong class="text-stone-200">${ruta.ultimaActualizacionGPS}</strong>
+                                </p>
+                                ${
+                                    ruta.gpsActivo
+                                        ? `<div class="rounded-lg overflow-hidden border border-stone-800 h-52 bg-stone-900">
+                                            <iframe
+                                                title="Ubicación en tiempo real"
+                                                src="${embedMapsUrl}"
+                                                class="w-full h-full border-0"
+                                                loading="lazy"
+                                                referrerpolicy="no-referrer-when-downgrade">
+                                            </iframe>
+                                           </div>`
+                                        : ""
+                                }
+                               </div>`
+                            : ""
+                    }
+
+                    <div>
+                        <p class="text-[11px] uppercase font-bold text-stone-400 mb-1">Dependencias asignadas (Parrillero toca para marcar entrega):</p>
+                        ${destinosHtml}
+                    </div>
+                `;
+                cont.appendChild(card);
+            });
+        }
+    </script>
+</body>
+</html>
