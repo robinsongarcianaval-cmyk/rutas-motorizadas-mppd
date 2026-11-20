@@ -14,6 +14,17 @@
 </head>
 <body id="app-body" class="bg-[#060708] text-stone-100 min-h-screen flex flex-col justify-between selection:bg-amber-600 selection:text-stone-950 bg-cover bg-center bg-fixed bg-no-repeat transition-all duration-300" style="background-image: linear-gradient(to bottom, rgba(6, 7, 8, 0.62), rgba(6, 7, 8, 0.85)), url('./fondo-moto-mppd.jpg');">
 
+    <!-- Banner de Alerta Visual para Jefe -->
+    <div id="jefe-alerta-banner" class="hidden fixed top-4 left-1/2 -translate-x-1/2 z-50 max-w-md w-[92%] bg-[#12151a]/95 border border-amber-400/70 text-stone-100 px-4 py-3 rounded-xl shadow-2xl flex items-center justify-between gap-3">
+        <div class="text-xs">
+            <p id="jefe-alerta-titulo" class="font-extrabold text-amber-300 uppercase tracking-wide"></p>
+            <p id="jefe-alerta-detalle" class="text-stone-200 mt-0.5"></p>
+        </div>
+        <button type="button" onclick="ocultarAlertaJefe()" class="text-[11px] font-bold bg-[#060708] hover:bg-stone-800 text-stone-300 px-2.5 py-1 rounded border border-stone-700 shrink-0">
+            OK
+        </button>
+    </div>
+
     <!-- Header Institucional con Escudo del Ministerio -->
     <header class="bg-[#0d0f12]/90 backdrop-blur-md border-b border-stone-800/90 p-4 shadow-xl">
         <div class="max-w-5xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-3">
@@ -29,6 +40,9 @@
                 <span id="cloud-status" class="text-[11px] font-semibold px-2.5 py-1 rounded-full bg-amber-500/15 border border-amber-500/40 text-amber-300">
                     Nube Conectada
                 </span>
+                <button type="button" id="btn-sonido-jefe" onclick="alternarSonidoJefe()" class="hidden text-[11px] font-bold px-2.5 py-1.5 rounded border transition">
+                    Sonido: Activo
+                </button>
                 <span id="nav-user" class="text-xs font-bold px-2.5 py-1 rounded bg-[#14171c] border border-amber-500/40 text-amber-300"></span>
                 <button onclick="abrirModalSeguridad()" class="bg-[#181b20] hover:bg-amber-500/20 text-amber-300 border border-amber-500/40 text-xs font-bold px-2.5 py-1.5 rounded transition">
                     Seguridad
@@ -379,6 +393,13 @@
         let unsubscribeRutas = null;
         let ultimaCoordenadaEnviada = { lat: null, lng: null, tiempo: 0 };
 
+        // Estado para alertas del Jefe
+        let sonidoJefeHabilitado = localStorage.getItem("mppd_jefe_sonido") !== "false";
+        let audioCtxJefe = null;
+        let snapshotInicialJefe = true;
+        let estadosPreviosRutas = new Map();
+        let alertaTimeoutId = null;
+
         function escapeHTML(str) {
             return String(str ?? "")
                 .replace(/&/g, "&amp;")
@@ -450,6 +471,181 @@
             }
         };
 
+        // --- SISTEMA DE SONIDO Y NOTIFICACIÓN PARA JEFE ---
+        function desbloquearAudioJefe() {
+            try {
+                const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                if (!AudioContextClass) return;
+                if (!audioCtxJefe) {
+                    audioCtxJefe = new AudioContextClass();
+                }
+                if (audioCtxJefe.state === "suspended") {
+                    audioCtxJefe.resume();
+                }
+            } catch (e) {
+                console.warn("AudioContext no disponible:", e);
+            }
+        }
+
+        function reproducirTonoRuta(tipo) {
+            if (!sonidoJefeHabilitado) return;
+            desbloquearAudioJefe();
+            if (!audioCtxJefe) return;
+
+            try {
+                const ahora = audioCtxJefe.currentTime;
+                const notas = tipo === "inicio"
+                    ? [587.33, 783.99, 1046.50] // Tono ascendente de salida/inicio (D5 - G5 - C6)
+                    : [783.99, 587.33, 440.00]; // Tono descendente de finalización (G5 - D5 - A4)
+
+                notas.forEach((frecuencia, idx) => {
+                    const osc = audioCtxJefe.createOscillator();
+                    const gain = audioCtxJefe.createGain();
+                    osc.type = "triangle";
+                    osc.frequency.setValueAtTime(frecuencia, ahora + idx * 0.14);
+
+                    gain.gain.setValueAtTime(0.001, ahora + idx * 0.14);
+                    gain.gain.exponentialRampToValueAtTime(0.25, ahora + idx * 0.14 + 0.03);
+                    gain.gain.exponentialRampToValueAtTime(0.001, ahora + idx * 0.14 + 0.24);
+
+                    osc.connect(gain);
+                    gain.connect(audioCtxJefe.destination);
+
+                    osc.start(ahora + idx * 0.14);
+                    osc.stop(ahora + idx * 0.14 + 0.25);
+                });
+
+                if (navigator.vibrate) {
+                    navigator.vibrate(tipo === "inicio" ? [180, 90, 180] : [300]);
+                }
+            } catch (e) {
+                console.warn("No se pudo reproducir el sonido:", e);
+            }
+        }
+
+        async function solicitarPermisoNotificacionJefe() {
+            if (!("Notification" in window)) return;
+            if (Notification.permission === "default") {
+                try {
+                    await Notification.requestPermission();
+                } catch (e) {}
+            }
+        }
+
+        function lanzarNotificacionJefe(titulo, cuerpo, tag) {
+            const banner = document.getElementById("jefe-alerta-banner");
+            const elTitulo = document.getElementById("jefe-alerta-titulo");
+            const elDetalle = document.getElementById("jefe-alerta-detalle");
+
+            if (banner && elTitulo && elDetalle) {
+                elTitulo.innerText = titulo;
+                elDetalle.innerText = cuerpo;
+                banner.classList.remove("hidden");
+                if (alertaTimeoutId) clearTimeout(alertaTimeoutId);
+                alertaTimeoutId = setTimeout(() => {
+                    banner.classList.add("hidden");
+                }, 8000);
+            }
+
+            if ("Notification" in window && Notification.permission === "granted") {
+                try {
+                    new Notification(titulo, {
+                        body: cuerpo,
+                        icon: "./escudo-mppd.png",
+                        tag: tag || undefined,
+                        renotify: true
+                    });
+                } catch (e) {
+                    console.warn("Error lanzando notificación del sistema:", e);
+                }
+            }
+        }
+
+        window.ocultarAlertaJefe = function() {
+            document.getElementById("jefe-alerta-banner")?.classList.add("hidden");
+        };
+
+        function actualizarBotonSonidoJefe() {
+            const btn = document.getElementById("btn-sonido-jefe");
+            if (!btn) return;
+            if (!usuarioActual || usuarioActual.role !== "jefe") {
+                btn.classList.add("hidden");
+                return;
+            }
+            btn.classList.remove("hidden");
+            if (sonidoJefeHabilitado) {
+                btn.innerText = "Sonido: Activo";
+                btn.className = "text-[11px] font-bold px-2.5 py-1.5 rounded border bg-amber-500/20 text-amber-300 border-amber-500/50 transition";
+            } else {
+                btn.innerText = "Sonido: Silenciado";
+                btn.className = "text-[11px] font-bold px-2.5 py-1.5 rounded border bg-[#171010] text-red-300 border-red-800/60 transition";
+            }
+        }
+
+        window.alternarSonidoJefe = function() {
+            sonidoJefeHabilitado = !sonidoJefeHabilitado;
+            localStorage.setItem("mppd_jefe_sonido", String(sonidoJefeHabilitado));
+            actualizarBotonSonidoJefe();
+            if (sonidoJefeHabilitado) {
+                desbloquearAudioJefe();
+                reproducirTonoRuta("inicio");
+                solicitarPermisoNotificacionJefe();
+            }
+        };
+
+        function procesarEventosRutasParaJefe(listaRutas) {
+            if (!usuarioActual || usuarioActual.role !== "jefe") return;
+
+            if (snapshotInicialJefe) {
+                estadosPreviosRutas.clear();
+                listaRutas.forEach(r => {
+                    estadosPreviosRutas.set(r.docId, Boolean(r.gpsActivo));
+                });
+                snapshotInicialJefe = false;
+                return;
+            }
+
+            listaRutas.forEach(r => {
+                const gpsActual = Boolean(r.gpsActivo);
+                const teniaRegistroPrevio = estadosPreviosRutas.has(r.docId);
+                const gpsAnterior = estadosPreviosRutas.get(r.docId);
+
+                const parrillero = r.parrillero || (r.motorizados && r.motorizados[0]) || "Motorizado";
+                const piloto = r.piloto || (r.motorizados && r.motorizados[1]) || "";
+                const equipoTexto = piloto && piloto !== "Sin piloto (Solo)"
+                    ? `${parrillero} (Parrillero) y ${piloto} (Piloto)`
+                    : `${parrillero} (Solo)`;
+                const cantDestinos = (r.destinos || []).length;
+
+                if (!teniaRegistroPrevio) {
+                    if (gpsActual) {
+                        reproducirTonoRuta("inicio");
+                        lanzarNotificacionJefe(
+                            "Ruta Iniciada",
+                            `${equipoTexto} inició comisión hacia ${cantDestinos} destino(s).`,
+                            `inicio-${r.docId}`
+                        );
+                    }
+                } else if (gpsAnterior === true && gpsActual === false) {
+                    const entregados = (r.destinos || []).filter(d => d.entregado).length;
+                    reproducirTonoRuta("fin");
+                    lanzarNotificacionJefe(
+                        "Ruta Finalizada",
+                        `${equipoTexto} finalizó la comisión (${entregados}/${cantDestinos} entregados).`,
+                        `fin-${r.docId}`
+                    );
+                }
+
+                estadosPreviosRutas.set(r.docId, gpsActual);
+            });
+        }
+
+        document.addEventListener("click", () => {
+            if (usuarioActual && usuarioActual.role === "jefe") {
+                desbloquearAudioJefe();
+            }
+        }, { once: false });
+
         document.addEventListener("DOMContentLoaded", () => {
             renderizarOpcionesFormulario();
             actualizarBotonHuellaLogin();
@@ -478,6 +674,12 @@
             };
             localStorage.setItem("mppd_moto_user", JSON.stringify(usuarioActual));
             pilotoSeleccionado = "";
+
+            if (usuarioActual.role === "jefe") {
+                desbloquearAudioJefe();
+                solicitarPermisoNotificacionJefe();
+            }
+
             mostrarPanel();
         };
 
@@ -565,6 +767,12 @@
                     localStorage.setItem("mppd_moto_user", JSON.stringify(usuarioActual));
                     localStorage.setItem("mppd_moto_last_bio_user", objetivo.id);
                     pilotoSeleccionado = "";
+
+                    if (usuarioActual.role === "jefe") {
+                        desbloquearAudioJefe();
+                        solicitarPermisoNotificacionJefe();
+                    }
+
                     mostrarPanel();
                 }
             } catch (error) {
@@ -617,10 +825,14 @@
             detenerSeguimientoGPS();
             ultimaCoordenadaEnviada = { lat: null, lng: null, tiempo: 0 };
             if (unsubscribeRutas) unsubscribeRutas();
+            snapshotInicialJefe = true;
+            estadosPreviosRutas.clear();
+            ocultarAlertaJefe();
             usuarioActual = null;
             pilotoSeleccionado = "";
             localStorage.removeItem("mppd_moto_user");
             aplicarFondoPantalla(true);
+            actualizarBotonSonidoJefe();
             document.getElementById("app-section").classList.add("hidden");
             document.getElementById("user-bar").classList.add("hidden");
             document.getElementById("login-section").classList.remove("hidden");
@@ -638,6 +850,7 @@
                 ? `${usuarioActual.name} (Parrillero)`
                 : `${usuarioActual.name}`;
             document.getElementById("nav-user").innerText = etiquetaRol;
+            actualizarBotonSonidoJefe();
 
             const panelMoto = document.getElementById("motorizado-panel");
             if (usuarioActual.role === "motorizado") {
@@ -654,6 +867,8 @@
                 }
             } else {
                 panelMoto.classList.add("hidden");
+                snapshotInicialJefe = true;
+                estadosPreviosRutas.clear();
             }
 
             escucharRutasEnTiempoReal();
@@ -668,6 +883,8 @@
                 snapshot.forEach((docSnap) => {
                     rutasActivas.push({ docId: docSnap.id, ...docSnap.data() });
                 });
+
+                procesarEventosRutasParaJefe(rutasActivas);
 
                 const badgeNube = document.getElementById("cloud-status");
                 if (badgeNube) {
