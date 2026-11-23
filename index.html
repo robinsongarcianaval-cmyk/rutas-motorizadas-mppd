@@ -3,51 +3,53 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#090a0c">
+    <meta name="theme-color" content="#008069">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="Rutas MPPD">
+    <link rel="icon" type="image/png" href="./icono-moto.png">
+    <link rel="shortcut icon" type="image/png" href="./icono-moto.png">
     <link rel="manifest" href="./manifest.json">
-    <link rel="apple-touch-icon" href="./escudo-mppd.png">
+    <link rel="apple-touch-icon" href="./icono-moto.png">
     <title>Control de Rutas Motorizadas - MPPD</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body id="app-body" class="bg-[#060708] text-stone-100 min-h-screen flex flex-col justify-between selection:bg-amber-600 selection:text-stone-950 bg-cover bg-center bg-fixed bg-no-repeat transition-all duration-300" style="background-image: linear-gradient(to bottom, rgba(6, 7, 8, 0.62), rgba(6, 7, 8, 0.85)), url('./fondo-moto-mppd.jpg');">
+<body id="app-body" class="bg-[#f0f2f5] text-[#111b21] min-h-screen flex flex-col justify-between selection:bg-[#25d366]/30 selection:text-[#0b141a] bg-cover bg-center bg-fixed bg-no-repeat transition-all duration-300" style="background-image: linear-gradient(to bottom, rgba(240, 242, 245, 0.72), rgba(255, 255, 255, 0.88)), url('./fondo-moto-mppd.jpg');">
 
     <!-- Banner de Alerta Visual para Jefe -->
-    <div id="jefe-alerta-banner" class="hidden fixed top-4 left-1/2 -translate-x-1/2 z-50 max-w-md w-[92%] bg-[#12151a]/95 border border-amber-400/70 text-stone-100 px-4 py-3 rounded-xl shadow-2xl flex items-center justify-between gap-3">
+    <div id="jefe-alerta-banner" class="hidden fixed top-4 left-1/2 -translate-x-1/2 z-50 max-w-md w-[92%] bg-white/95 border-2 border-[#00a884] text-[#111b21] px-4 py-3 rounded-xl shadow-2xl flex items-center justify-between gap-3">
         <div class="text-xs">
-            <p id="jefe-alerta-titulo" class="font-extrabold text-amber-300 uppercase tracking-wide"></p>
-            <p id="jefe-alerta-detalle" class="text-stone-200 mt-0.5"></p>
+            <p id="jefe-alerta-titulo" class="font-extrabold text-[#008069] uppercase tracking-wide"></p>
+            <p id="jefe-alerta-detalle" class="text-[#3b4a54] mt-0.5"></p>
         </div>
-        <button type="button" onclick="ocultarAlertaJefe()" class="text-[11px] font-bold bg-[#060708] hover:bg-stone-800 text-stone-300 px-2.5 py-1 rounded border border-stone-700 shrink-0">
+        <button type="button" onclick="ocultarAlertaJefe()" class="text-[11px] font-bold bg-[#e7f8f3] hover:bg-[#d1f3e8] text-[#008069] px-2.5 py-1 rounded border border-[#00a884]/40 shrink-0">
             OK
         </button>
     </div>
 
     <!-- Header Institucional con Escudo del Ministerio -->
-    <header class="bg-[#0d0f12]/90 backdrop-blur-md border-b border-stone-800/90 p-4 shadow-xl">
+    <header class="bg-white/95 backdrop-blur-md border-b border-[#d1d7db] p-4 shadow-sm">
         <div class="max-w-5xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-3">
             <div class="flex items-center space-x-3 text-center sm:text-left">
                 <img src="./escudo-mppd.png" alt="Escudo MPPD" class="w-12 h-12 object-contain" onerror="this.style.display='none'">
                 <div>
-                    <span class="text-[11px] font-bold tracking-wider text-amber-400 uppercase">República Bolivariana de Venezuela</span>
-                    <h1 class="text-sm font-extrabold text-stone-100">Ministerio del Poder Popular para la Defensa</h1>
-                    <p class="text-xs text-stone-300">Control de Rutas y Entregas Motorizadas • Monitoreo en Tiempo Real</p>
+                    <span class="text-[11px] font-bold tracking-wider text-[#008069] uppercase">República Bolivariana de Venezuela</span>
+                    <h1 class="text-sm font-extrabold text-[#111b21]">Ministerio del Poder Popular para la Defensa</h1>
+                    <p class="text-xs text-[#54656f]">Control de Rutas y Entregas Motorizadas • Monitoreo en Tiempo Real</p>
                 </div>
             </div>
             <div id="user-bar" class="hidden flex items-center gap-2 flex-wrap justify-center">
-                <span id="cloud-status" class="text-[11px] font-semibold px-2.5 py-1 rounded-full bg-amber-500/15 border border-amber-500/40 text-amber-300">
+                <span id="cloud-status" class="text-[11px] font-semibold px-2.5 py-1 rounded-full bg-[#e7f8f3] border border-[#00a884]/40 text-[#008069]">
                     Nube Conectada
                 </span>
                 <button type="button" id="btn-sonido-jefe" onclick="alternarSonidoJefe()" class="hidden text-[11px] font-bold px-2.5 py-1.5 rounded border transition">
                     Sonido: Activo
                 </button>
-                <span id="nav-user" class="text-xs font-bold px-2.5 py-1 rounded bg-[#14171c] border border-amber-500/40 text-amber-300"></span>
-                <button onclick="abrirModalSeguridad()" class="bg-[#181b20] hover:bg-amber-500/20 text-amber-300 border border-amber-500/40 text-xs font-bold px-2.5 py-1.5 rounded transition">
+                <span id="nav-user" class="text-xs font-bold px-2.5 py-1 rounded bg-[#f0f2f5] border border-[#00a884]/40 text-[#008069]"></span>
+                <button onclick="abrirModalSeguridad()" class="bg-[#f0f2f5] hover:bg-[#e7f8f3] text-[#008069] border border-[#00a884]/40 text-xs font-bold px-2.5 py-1.5 rounded transition">
                     Seguridad
                 </button>
-                <button onclick="cerrarSesion()" class="bg-red-700 hover:bg-red-600 text-white text-xs font-bold px-3 py-1.5 rounded border border-red-500/40 transition">
+                <button onclick="cerrarSesion()" class="bg-[#008069] hover:bg-[#006b57] text-white text-xs font-bold px-3 py-1.5 rounded border border-[#008069] transition">
                     Salir
                 </button>
             </div>
@@ -58,33 +60,33 @@
     <main class="max-w-5xl w-full mx-auto p-4 flex-grow flex flex-col justify-center">
 
         <!-- PANTALLA 1: ACCESO (Con imagen fondo-moto-mppd.jpg visible) -->
-        <section id="login-section" class="max-w-md w-full mx-auto bg-[#0d0f12]/80 backdrop-blur-md p-6 rounded-xl border border-stone-700/80 shadow-2xl my-6">
-            <div class="border-l-4 border-red-600 pl-3 mb-5">
-                <h2 class="text-lg font-extrabold text-stone-100">Inicio de Sesión</h2>
-                <p class="text-xs text-stone-300">El motorizado que inicia sesión asume el control como Parrillero</p>
+        <section id="login-section" class="max-w-md w-full mx-auto bg-white/90 backdrop-blur-md p-6 rounded-xl border border-[#d1d7db] shadow-xl my-6">
+            <div class="border-l-4 border-[#00a884] pl-3 mb-5">
+                <h2 class="text-lg font-extrabold text-[#111b21]">Inicio de Sesión</h2>
+                <p class="text-xs text-[#54656f]">El motorizado que inicia sesión asume el control como Parrillero</p>
             </div>
 
             <form id="login-form" onsubmit="iniciarSesion(event)" class="space-y-4">
                 <div>
-                    <label class="block text-xs uppercase font-bold text-amber-400 mb-1">Usuario</label>
-                    <input type="text" id="username" required oninput="actualizarBotonHuellaLogin()" placeholder="Ej: Jefe, Liendo, Delgado, Ortega, Suárez, Valencia" class="w-full bg-[#060708]/85 border border-stone-700 rounded-lg p-2.5 text-sm text-stone-100 placeholder-stone-500 focus:outline-none focus:border-amber-400">
+                    <label class="block text-xs uppercase font-bold text-[#008069] mb-1">Usuario</label>
+                    <input type="text" id="username" required oninput="actualizarBotonHuellaLogin()" placeholder="Ej: Jefe, Liendo, Delgado, Ortega, Suárez, Valencia" class="w-full bg-white border border-[#d1d7db] rounded-lg p-2.5 text-sm text-[#111b21] placeholder-[#8696a0] focus:outline-none focus:border-[#00a884]">
                 </div>
                 <div>
-                    <label class="block text-xs uppercase font-bold text-amber-400 mb-1">Contraseña</label>
-                    <input type="password" id="password" required placeholder="Clave inicial: 1234" class="w-full bg-[#060708]/85 border border-stone-700 rounded-lg p-2.5 text-sm text-stone-100 placeholder-stone-500 focus:outline-none focus:border-amber-400">
+                    <label class="block text-xs uppercase font-bold text-[#008069] mb-1">Contraseña</label>
+                    <input type="password" id="password" required placeholder="Clave inicial: 1234" class="w-full bg-white border border-[#d1d7db] rounded-lg p-2.5 text-sm text-[#111b21] placeholder-[#8696a0] focus:outline-none focus:border-[#00a884]">
                 </div>
-                <button type="submit" class="w-full bg-amber-500 hover:bg-amber-400 text-stone-950 font-extrabold py-2.5 rounded-lg text-sm border border-amber-300/40 shadow-md transition">
+                <button type="submit" class="w-full bg-[#00a884] hover:bg-[#008f70] text-white font-extrabold py-2.5 rounded-lg text-sm border border-[#008069]/30 shadow-sm transition">
                     Ingresar al Sistema
                 </button>
-                <button type="button" id="btn-login-huella" onclick="ingresarConHuella()" class="hidden w-full bg-[#171010]/90 hover:bg-red-950/80 text-red-300 border border-red-700/60 font-bold py-2.5 rounded-lg text-xs transition">
+                <button type="button" id="btn-login-huella" onclick="ingresarConHuella()" class="hidden w-full bg-[#e7f8f3] hover:bg-[#d1f3e8] text-[#008069] border border-[#00a884]/50 font-bold py-2.5 rounded-lg text-xs transition">
                     Ingresar con Huella Digital
                 </button>
             </form>
 
-            <div class="mt-5 pt-4 border-t border-stone-700/80 text-xs text-stone-300 text-center space-y-1">
-                <p>Clave inicial general: <strong class="text-amber-300">1234</strong></p>
-                <p>Supervisión: <strong class="text-stone-100">Jefe</strong></p>
-                <p>Motorizados: <strong class="text-amber-300">Liendo</strong>, <strong class="text-amber-300">Delgado</strong>, <strong class="text-amber-300">Ortega</strong>, <strong class="text-amber-300">Suárez</strong>, <strong class="text-amber-300">Valencia</strong></p>
+            <div class="mt-5 pt-4 border-t border-[#e9edef] text-xs text-[#54656f] text-center space-y-1">
+                <p>Clave inicial general: <strong class="text-[#008069]">1234</strong></p>
+                <p>Supervisión: <strong class="text-[#111b21]">Jefe</strong></p>
+                <p>Motorizados: <strong class="text-[#008069]">Liendo</strong>, <strong class="text-[#008069]">Delgado</strong>, <strong class="text-[#008069]">Ortega</strong>, <strong class="text-[#008069]">Suárez</strong>, <strong class="text-[#008069]">Valencia</strong></p>
             </div>
         </section>
 
@@ -92,33 +94,33 @@
         <section id="app-section" class="hidden space-y-6 w-full self-start">
 
             <!-- SECCIÓN EXCLUSIVA PARA EL PARRILLERO: PREPARAR MISIÓN / SALIDA -->
-            <div id="motorizado-panel" class="hidden bg-[#0d0f12] p-5 rounded-xl border border-stone-800 shadow-xl space-y-5">
-                <div class="border-b border-stone-800 pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                    <div class="border-l-4 border-amber-500 pl-3">
-                        <h2 class="text-base font-extrabold text-amber-400">Configurar Salida / Hoja de Ruta</h2>
-                        <p class="text-xs text-stone-400">Usted opera esta misión como <strong class="text-amber-300">Parrillero</strong> (control de entregas y GPS)</p>
+            <div id="motorizado-panel" class="hidden bg-white p-5 rounded-xl border border-[#d1d7db] shadow-sm space-y-5">
+                <div class="border-b border-[#e9edef] pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div class="border-l-4 border-[#00a884] pl-3">
+                        <h2 class="text-base font-extrabold text-[#008069]">Configurar Salida / Hoja de Ruta</h2>
+                        <p class="text-xs text-[#54656f]">Usted opera esta misión como <strong class="text-[#008069]">Parrillero</strong> (control de entregas y GPS)</p>
                     </div>
-                    <span id="gps-badge" class="text-[11px] font-bold px-2.5 py-1 rounded-full bg-[#171010] text-red-300 border border-red-800/60">
+                    <span id="gps-badge" class="text-[11px] font-bold px-2.5 py-1 rounded-full bg-[#f0f2f5] text-[#54656f] border border-[#d1d7db]">
                         GPS: Inactivo
                     </span>
                 </div>
 
                 <!-- 1. Identificación de Parrillero (Fijo) y Selección de Piloto -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-[#060708] p-3.5 rounded-xl border border-stone-800">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-[#f0f2f5] p-3.5 rounded-xl border border-[#e9edef]">
                     <div>
-                        <label class="block text-[11px] uppercase font-bold text-stone-400 mb-1.5">
+                        <label class="block text-[11px] uppercase font-bold text-[#54656f] mb-1.5">
                             Parrillero (Operador de la App y GPS)
                         </label>
-                        <div class="flex items-center justify-between bg-[#12151a] border border-amber-500/50 rounded-lg px-3 py-2.5">
-                            <span id="parrillero-asignado" class="text-sm font-extrabold text-amber-400"></span>
-                            <span class="text-[10px] uppercase font-bold bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded border border-amber-500/30">
+                        <div class="flex items-center justify-between bg-white border border-[#00a884]/50 rounded-lg px-3 py-2.5">
+                            <span id="parrillero-asignado" class="text-sm font-extrabold text-[#008069]"></span>
+                            <span class="text-[10px] uppercase font-bold bg-[#e7f8f3] text-[#008069] px-2 py-0.5 rounded border border-[#00a884]/30">
                                 Activo en sesión
                             </span>
                         </div>
                     </div>
 
                     <div>
-                        <label class="block text-[11px] uppercase font-bold text-stone-200 mb-1.5">
+                        <label class="block text-[11px] uppercase font-bold text-[#111b21] mb-1.5">
                             1. Seleccione a su compañero (Piloto)
                         </label>
                         <div id="pilotos-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-1.5"></div>
@@ -128,30 +130,30 @@
                 <!-- 2. Selección Múltiple de Dependencias Frecuentes con Filtro de Búsqueda -->
                 <div class="space-y-2">
                     <div class="flex items-center justify-between">
-                        <label class="block text-xs uppercase font-bold text-stone-200">
-                            2. Dependencias y Entes a Visitar <span class="text-amber-400 font-normal">(Selección múltiple)</span>
+                        <label class="block text-xs uppercase font-bold text-[#111b21]">
+                            2. Dependencias y Entes a Visitar <span class="text-[#008069] font-normal">(Selección múltiple)</span>
                         </label>
-                        <span id="contador-seleccionadas" class="text-xs text-amber-400 font-bold">0 seleccionadas</span>
+                        <span id="contador-seleccionadas" class="text-xs text-[#008069] font-bold">0 seleccionadas</span>
                     </div>
 
                     <div class="relative flex items-center">
-                        <input type="text" id="filtro-dep-input" oninput="filtrarDependencias()" placeholder="Buscar dependencia o ente (Ej: Unefa, Caminpeg, Círculo Militar, SAIME)..." class="w-full bg-[#060708] border border-stone-800 rounded-lg pl-3 pr-16 py-2 text-xs text-stone-100 placeholder-stone-500 focus:outline-none focus:border-amber-400">
-                        <button type="button" id="btn-limpiar-filtro" onclick="limpiarFiltroDependencias()" class="hidden absolute right-2 text-[11px] font-bold text-amber-400 hover:text-amber-300 bg-[#14171c] border border-stone-700 px-2 py-0.5 rounded transition">
+                        <input type="text" id="filtro-dep-input" oninput="filtrarDependencias()" placeholder="Buscar dependencia o ente (Ej: Unefa, Caminpeg, Círculo Militar, SAIME)..." class="w-full bg-white border border-[#d1d7db] rounded-lg pl-3 pr-16 py-2 text-xs text-[#111b21] placeholder-[#8696a0] focus:outline-none focus:border-[#00a884]">
+                        <button type="button" id="btn-limpiar-filtro" onclick="limpiarFiltroDependencias()" class="hidden absolute right-2 text-[11px] font-bold text-[#008069] hover:text-[#006b57] bg-[#e7f8f3] border border-[#00a884]/30 px-2 py-0.5 rounded transition">
                             Limpiar
                         </button>
                     </div>
 
-                    <div id="dependencias-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 max-h-60 overflow-y-auto p-2 bg-[#060708] rounded-lg border border-stone-800"></div>
+                    <div id="dependencias-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 max-h-60 overflow-y-auto p-2 bg-[#f0f2f5] rounded-lg border border-[#e9edef]"></div>
                 </div>
 
                 <!-- 3. Agregar Dependencia Manualmente -->
                 <div>
-                    <label class="block text-xs uppercase font-bold text-stone-200 mb-1.5">
+                    <label class="block text-xs uppercase font-bold text-[#111b21] mb-1.5">
                         3. ¿Alguna dependencia no está en la lista? Escríbala aquí:
                     </label>
                     <div class="flex gap-2">
-                        <input type="text" id="manual-dep-input" placeholder="Ej: Ministerio de Relaciones Exteriores / Comando..." class="flex-grow bg-[#060708] border border-stone-800 rounded-lg px-3 py-2 text-xs text-stone-100 placeholder-stone-600 focus:outline-none focus:border-amber-400">
-                        <button type="button" onclick="agregarDependenciaManual()" class="bg-[#181b20] hover:bg-amber-500/20 text-amber-300 border border-amber-500/40 px-4 py-2 rounded-lg text-xs font-bold transition">
+                        <input type="text" id="manual-dep-input" placeholder="Ej: Ministerio de Relaciones Exteriores / Comando..." class="flex-grow bg-white border border-[#d1d7db] rounded-lg px-3 py-2 text-xs text-[#111b21] placeholder-[#8696a0] focus:outline-none focus:border-[#00a884]">
+                        <button type="button" onclick="agregarDependenciaManual()" class="bg-[#e7f8f3] hover:bg-[#d1f3e8] text-[#008069] border border-[#00a884]/40 px-4 py-2 rounded-lg text-xs font-bold transition">
                             + Agregar
                         </button>
                     </div>
@@ -160,38 +162,38 @@
 
                 <!-- 4. Observación / Cantidad de sobres o puntos -->
                 <div>
-                    <label class="block text-xs uppercase font-bold text-stone-200 mb-1.5">4. Detalle de Documentación (Opcional)</label>
-                    <input type="text" id="ruta-detalle" placeholder="Ej: 4 puntos de cuenta y 2 oficios urgentes" class="w-full bg-[#060708] border border-stone-800 rounded-lg px-3 py-2 text-xs text-stone-100 placeholder-stone-600 focus:outline-none focus:border-amber-400">
+                    <label class="block text-xs uppercase font-bold text-[#111b21] mb-1.5">4. Detalle de Documentación (Opcional)</label>
+                    <input type="text" id="ruta-detalle" placeholder="Ej: 4 puntos de cuenta y 2 oficios urgentes" class="w-full bg-white border border-[#d1d7db] rounded-lg px-3 py-2 text-xs text-[#111b21] placeholder-[#8696a0] focus:outline-none focus:border-[#00a884]">
                 </div>
 
                 <!-- Botón de Activación de Ruta y GPS en Tiempo Real -->
                 <div class="pt-2 flex flex-col sm:flex-row gap-3">
-                    <button type="button" id="btn-iniciar-ruta" onclick="iniciarRutaConGPS()" class="flex-1 bg-amber-500 hover:bg-amber-400 text-stone-950 font-extrabold py-3 px-4 rounded-lg text-xs uppercase tracking-wide border border-amber-300/40 shadow-lg transition">
+                    <button type="button" id="btn-iniciar-ruta" onclick="iniciarRutaConGPS()" class="flex-1 bg-[#00a884] hover:bg-[#008f70] text-white font-extrabold py-3 px-4 rounded-lg text-xs uppercase tracking-wide border border-[#008069]/30 shadow-sm transition">
                         Iniciar Ruta y Activar Ubicación en Tiempo Real
                     </button>
-                    <button type="button" id="btn-finalizar-ruta" onclick="finalizarRutaGPS()" class="hidden bg-red-700 hover:bg-red-600 text-white font-bold py-3 px-4 rounded-lg text-xs border border-red-500/40 transition">
+                    <button type="button" id="btn-finalizar-ruta" onclick="finalizarRutaGPS()" class="hidden bg-[#006b57] hover:bg-[#005243] text-white font-bold py-3 px-4 rounded-lg text-xs border border-[#004034] transition">
                         Finalizar Misión y Detener GPS
                     </button>
                 </div>
             </div>
 
             <!-- SECCIÓN DE MONITOREO EN TIEMPO REAL -->
-            <div class="bg-[#0d0f12] p-5 rounded-xl border border-stone-800 shadow-xl space-y-4">
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-stone-800 pb-3 gap-2">
-                    <div class="border-l-4 border-red-600 pl-3">
-                        <h2 class="text-base font-extrabold text-stone-100 flex items-center gap-2">
+            <div class="bg-white p-5 rounded-xl border border-[#d1d7db] shadow-sm space-y-4">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#e9edef] pb-3 gap-2">
+                    <div class="border-l-4 border-[#00a884] pl-3">
+                        <h2 class="text-base font-extrabold text-[#111b21] flex items-center gap-2">
                             <span>Monitoreo de Comisiones y Entregas en Tiempo Real</span>
-                            <span class="h-2.5 w-2.5 rounded-full bg-amber-400 animate-pulse"></span>
+                            <span class="h-2.5 w-2.5 rounded-full bg-[#25d366] animate-pulse"></span>
                         </h2>
-                        <p class="text-xs text-stone-400">Identificación de Parrillero y Piloto, progreso de entregas y Google Maps en vivo</p>
+                        <p class="text-xs text-[#54656f]">Identificación de Parrillero y Piloto, progreso de entregas y Google Maps en vivo</p>
                     </div>
-                    <span id="total-rutas" class="text-xs bg-[#060708] border border-stone-800 px-3 py-1 rounded-full text-amber-300 font-semibold">
+                    <span id="total-rutas" class="text-xs bg-[#f0f2f5] border border-[#d1d7db] px-3 py-1 rounded-full text-[#008069] font-semibold">
                         Sincronizando...
                     </span>
                 </div>
 
                 <div id="rutas-container" class="space-y-4">
-                    <p class="text-xs text-stone-500 text-center py-6">Conectando con la nube en tiempo real...</p>
+                    <p class="text-xs text-[#8696a0] text-center py-6">Conectando con la nube en tiempo real...</p>
                 </div>
             </div>
 
@@ -200,36 +202,36 @@
     </main>
 
     <!-- Modal de Seguridad: Cambio de Contraseña y Huella Digital -->
-    <div id="security-modal" class="fixed inset-0 z-50 hidden bg-black/85 flex items-center justify-center p-4">
-        <div class="bg-[#0d0f12] border border-stone-700 rounded-xl max-w-md w-full p-5 shadow-2xl space-y-4">
-            <div class="flex items-center justify-between border-b border-stone-800 pb-3">
+    <div id="security-modal" class="fixed inset-0 z-50 hidden bg-black/50 flex items-center justify-center p-4">
+        <div class="bg-white border border-[#d1d7db] rounded-xl max-w-md w-full p-5 shadow-2xl space-y-4">
+            <div class="flex items-center justify-between border-b border-[#e9edef] pb-3">
                 <div>
-                    <h4 class="text-sm font-extrabold text-amber-400">Seguridad de la Cuenta</h4>
-                    <p id="security-user-label" class="text-xs text-stone-400"></p>
+                    <h4 class="text-sm font-extrabold text-[#008069]">Seguridad de la Cuenta</h4>
+                    <p id="security-user-label" class="text-xs text-[#54656f]"></p>
                 </div>
-                <button onclick="cerrarModalSeguridad()" class="text-xs text-stone-300 hover:text-white bg-[#060708] border border-stone-700 px-2.5 py-1 rounded">
+                <button onclick="cerrarModalSeguridad()" class="text-xs text-[#111b21] hover:bg-[#e9edef] bg-[#f0f2f5] border border-[#d1d7db] px-2.5 py-1 rounded">
                     Cerrar
                 </button>
             </div>
 
             <form id="change-password-form" onsubmit="cambiarContrasena(event)" class="space-y-3">
                 <div>
-                    <label class="block text-xs uppercase font-bold text-stone-300 mb-1">Nueva Contraseña</label>
-                    <input type="password" id="new-password" required minlength="4" placeholder="Mínimo 4 caracteres" class="w-full bg-[#060708] border border-stone-800 rounded p-2 text-sm text-stone-100 focus:outline-none focus:border-amber-400">
+                    <label class="block text-xs uppercase font-bold text-[#111b21] mb-1">Nueva Contraseña</label>
+                    <input type="password" id="new-password" required minlength="4" placeholder="Mínimo 4 caracteres" class="w-full bg-white border border-[#d1d7db] rounded p-2 text-sm text-[#111b21] focus:outline-none focus:border-[#00a884]">
                 </div>
                 <div>
-                    <label class="block text-xs uppercase font-bold text-stone-300 mb-1">Confirmar Nueva Contraseña</label>
-                    <input type="password" id="confirm-password" required minlength="4" class="w-full bg-[#060708] border border-stone-800 rounded p-2 text-sm text-stone-100 focus:outline-none focus:border-amber-400">
+                    <label class="block text-xs uppercase font-bold text-[#111b21] mb-1">Confirmar Nueva Contraseña</label>
+                    <input type="password" id="confirm-password" required minlength="4" class="w-full bg-white border border-[#d1d7db] rounded p-2 text-sm text-[#111b21] focus:outline-none focus:border-[#00a884]">
                 </div>
-                <button type="submit" class="w-full bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold p-2 rounded text-xs border border-amber-300/40 transition">
+                <button type="submit" class="w-full bg-[#00a884] hover:bg-[#008f70] text-white font-bold p-2 rounded text-xs border border-[#008069]/30 transition">
                     Guardar Nueva Contraseña
                 </button>
             </form>
 
-            <div id="biometric-box" class="border-t border-stone-800 pt-3 space-y-2">
-                <p class="text-xs font-bold text-stone-200">Acceso Biométrico (Huella Digital)</p>
-                <p id="biometric-status" class="text-[11px] text-stone-400"></p>
-                <button type="button" onclick="registrarHuellaDigital()" class="w-full bg-[#171010] hover:bg-red-950/70 text-red-300 border border-red-700/60 font-bold p-2 rounded text-xs transition">
+            <div id="biometric-box" class="border-t border-[#e9edef] pt-3 space-y-2">
+                <p class="text-xs font-bold text-[#111b21]">Acceso Biométrico (Huella Digital)</p>
+                <p id="biometric-status" class="text-[11px] text-[#54656f]"></p>
+                <button type="button" onclick="registrarHuellaDigital()" class="w-full bg-[#e7f8f3] hover:bg-[#d1f3e8] text-[#008069] border border-[#00a884]/50 font-bold p-2 rounded text-xs transition">
                     Configurar / Actualizar Huella Digital
                 </button>
             </div>
@@ -237,9 +239,9 @@
     </div>
 
     <!-- Footer -->
-    <footer class="text-center p-4 text-xs text-stone-400 border-t border-stone-800/80 bg-[#08090b]/90 backdrop-blur-md space-y-1">
+    <footer class="text-center p-4 text-xs text-[#54656f] border-t border-[#d1d7db] bg-white/95 backdrop-blur-md space-y-1">
         <div>Ministerio del Poder Popular para la Defensa &copy; 2026</div>
-        <div class="text-[10px] text-stone-500">Aplicación creada por el T.N. Robinson García López</div>
+        <div class="text-[10px] text-[#8696a0]">Aplicación creada por el T.N. Robinson García López</div>
     </footer>
 
     <!-- Registro del Service Worker para instalación en teléfono (PWA) -->
@@ -378,7 +380,7 @@
             { id: "valencia", name: "Valencia", role: "motorizado", defaultPassword: "1234" }
         ];
 
-        const FONDO_LOGIN_STYLE = "linear-gradient(to bottom, rgba(6, 7, 8, 0.62), rgba(6, 7, 8, 0.85)), url('./fondo-moto-mppd.jpg')";
+        const FONDO_LOGIN_STYLE = "linear-gradient(to bottom, rgba(240, 242, 245, 0.72), rgba(255, 255, 255, 0.88)), url('./fondo-moto-mppd.jpg')";
 
         let passwordsPersonalizadas = JSON.parse(localStorage.getItem("mppd_moto_passwords")) || {};
         let huellasRegistradas = JSON.parse(localStorage.getItem("mppd_moto_biometrics")) || {};
@@ -495,8 +497,8 @@
             try {
                 const ahora = audioCtxJefe.currentTime;
                 const notas = tipo === "inicio"
-                    ? [587.33, 783.99, 1046.50] // Tono ascendente de salida/inicio (D5 - G5 - C6)
-                    : [783.99, 587.33, 440.00]; // Tono descendente de finalización (G5 - D5 - A4)
+                    ? [587.33, 783.99, 1046.50]
+                    : [783.99, 587.33, 440.00];
 
                 notas.forEach((frecuencia, idx) => {
                     const osc = audioCtxJefe.createOscillator();
@@ -551,7 +553,7 @@
                 try {
                     new Notification(titulo, {
                         body: cuerpo,
-                        icon: "./escudo-mppd.png",
+                        icon: "./icono-moto.png",
                         tag: tag || undefined,
                         renotify: true
                     });
@@ -575,10 +577,10 @@
             btn.classList.remove("hidden");
             if (sonidoJefeHabilitado) {
                 btn.innerText = "Sonido: Activo";
-                btn.className = "text-[11px] font-bold px-2.5 py-1.5 rounded border bg-amber-500/20 text-amber-300 border-amber-500/50 transition";
+                btn.className = "text-[11px] font-bold px-2.5 py-1.5 rounded border bg-[#e7f8f3] text-[#008069] border-[#00a884]/50 transition";
             } else {
                 btn.innerText = "Sonido: Silenciado";
-                btn.className = "text-[11px] font-bold px-2.5 py-1.5 rounded border bg-[#171010] text-red-300 border-red-800/60 transition";
+                btn.className = "text-[11px] font-bold px-2.5 py-1.5 rounded border bg-[#f0f2f5] text-[#54656f] border-[#d1d7db] transition";
             }
         }
 
@@ -862,7 +864,7 @@
                     document.getElementById("btn-iniciar-ruta").classList.add("hidden");
                     document.getElementById("btn-finalizar-ruta").classList.remove("hidden");
                     document.getElementById("gps-badge").innerText = "GPS: Transmitiendo en vivo";
-                    document.getElementById("gps-badge").className = "text-[11px] font-bold px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/50";
+                    document.getElementById("gps-badge").className = "text-[11px] font-bold px-2.5 py-1 rounded-full bg-[#e7f8f3] text-[#008069] border border-[#00a884]/50";
                     activarWatchPosition(rutaActivaDocId);
                 }
             } else {
@@ -889,7 +891,7 @@
                 const badgeNube = document.getElementById("cloud-status");
                 if (badgeNube) {
                     badgeNube.innerText = "En vivo";
-                    badgeNube.className = "text-[11px] font-semibold px-2.5 py-1 rounded-full bg-amber-500/15 border border-amber-500/40 text-amber-300";
+                    badgeNube.className = "text-[11px] font-semibold px-2.5 py-1 rounded-full bg-[#e7f8f3] border border-[#00a884]/40 text-[#008069]";
                 }
 
                 renderizarRutas();
@@ -898,7 +900,7 @@
                 const badgeNube = document.getElementById("cloud-status");
                 if (badgeNube) {
                     badgeNube.innerText = "Sin conexión nube";
-                    badgeNube.className = "text-[11px] font-semibold px-2.5 py-1 rounded-full bg-red-950 border border-red-800 text-red-300";
+                    badgeNube.className = "text-[11px] font-semibold px-2.5 py-1 rounded-full bg-[#fef2f2] border border-red-300 text-red-700";
                 }
             });
         }
@@ -932,7 +934,7 @@
                 : DEPENDENCIAS_FRECUENTES;
 
             if (filtradas.length === 0) {
-                depGrid.innerHTML = `<p class="col-span-full text-xs text-stone-400 text-center py-4">No se encontraron dependencias con "${escapeHTML(filtroDependencias)}". Puede agregarla manualmente en el paso 3.</p>`;
+                depGrid.innerHTML = `<p class="col-span-full text-xs text-[#54656f] text-center py-4">No se encontraron dependencias con "${escapeHTML(filtroDependencias)}". Puede agregarla manualmente en el paso 3.</p>`;
                 return;
             }
 
@@ -940,11 +942,11 @@
                 const marcada = dependenciasSeleccionadas.includes(dep);
                 const label = document.createElement("label");
                 label.className = marcada
-                    ? "flex items-start gap-2 p-2.5 rounded-lg bg-amber-500/15 border border-amber-500/50 cursor-pointer text-xs text-amber-200 font-semibold"
-                    : "flex items-start gap-2 p-2.5 rounded-lg bg-[#0d0f12] border border-stone-800 hover:border-stone-700 cursor-pointer text-xs text-stone-300";
+                    ? "flex items-start gap-2 p-2.5 rounded-lg bg-[#e7f8f3] border border-[#00a884] cursor-pointer text-xs text-[#006b57] font-semibold"
+                    : "flex items-start gap-2 p-2.5 rounded-lg bg-white border border-[#d1d7db] hover:border-[#00a884]/60 cursor-pointer text-xs text-[#111b21]";
 
                 label.innerHTML = `
-                    <input type="checkbox" ${marcada ? "checked" : ""} class="mt-0.5 accent-amber-500">
+                    <input type="checkbox" ${marcada ? "checked" : ""} class="mt-0.5 accent-[#00a884]">
                     <span>${escapeHTML(dep)}</span>
                 `;
                 label.querySelector("input").onchange = () => toggleDependencia(dep);
@@ -964,8 +966,8 @@
                 const btn = document.createElement("button");
                 btn.type = "button";
                 btn.className = activo
-                    ? "px-2.5 py-2 rounded-lg text-xs font-extrabold bg-amber-500 text-stone-950 border border-amber-300 transition shadow"
-                    : "px-2.5 py-2 rounded-lg text-xs font-semibold bg-[#0d0f12] text-stone-300 border border-stone-800 hover:border-amber-500/50 transition";
+                    ? "px-2.5 py-2 rounded-lg text-xs font-extrabold bg-[#00a884] text-white border border-[#008069] transition shadow-sm"
+                    : "px-2.5 py-2 rounded-lg text-xs font-semibold bg-white text-[#111b21] border border-[#d1d7db] hover:border-[#00a884] transition";
                 btn.innerText = nombre;
                 btn.onclick = () => seleccionarPiloto(nombre);
                 pilotosGrid.appendChild(btn);
@@ -975,8 +977,8 @@
             const btnSolo = document.createElement("button");
             btnSolo.type = "button";
             btnSolo.className = soloActivo
-                ? "px-2.5 py-2 rounded-lg text-xs font-extrabold bg-red-700 text-white border border-red-400 transition shadow"
-                : "px-2.5 py-2 rounded-lg text-xs font-semibold bg-[#0d0f12] text-stone-400 border border-stone-800 hover:border-red-700/60 transition";
+                ? "px-2.5 py-2 rounded-lg text-xs font-extrabold bg-[#006b57] text-white border border-[#005243] transition shadow-sm"
+                : "px-2.5 py-2 rounded-lg text-xs font-semibold bg-white text-[#54656f] border border-[#d1d7db] hover:border-[#00a884] transition";
             btnSolo.innerText = "Solo";
             btnSolo.onclick = () => seleccionarPiloto("Sin piloto (Solo)");
             pilotosGrid.appendChild(btnSolo);
@@ -1024,10 +1026,10 @@
             cont.innerHTML = "";
             dependenciasManuales.forEach((dep, idx) => {
                 const tag = document.createElement("span");
-                tag.className = "inline-flex items-center gap-1.5 bg-amber-500/15 text-amber-300 border border-amber-500/40 px-2.5 py-1 rounded-full text-xs";
+                tag.className = "inline-flex items-center gap-1.5 bg-[#e7f8f3] text-[#008069] border border-[#00a884]/40 px-2.5 py-1 rounded-full text-xs font-semibold";
                 tag.innerHTML = `
                     <span>${escapeHTML(dep)}</span>
-                    <button type="button" onclick="eliminarDependenciaManual(${idx})" class="font-bold text-red-400 hover:text-red-300">&times;</button>
+                    <button type="button" onclick="eliminarDependenciaManual(${idx})" class="font-bold text-[#006b57] hover:text-[#111b21]">&times;</button>
                 `;
                 cont.appendChild(tag);
             });
@@ -1091,7 +1093,7 @@
                 document.getElementById("btn-iniciar-ruta").classList.add("hidden");
                 document.getElementById("btn-finalizar-ruta").classList.remove("hidden");
                 document.getElementById("gps-badge").innerText = "GPS: Transmitiendo en vivo";
-                document.getElementById("gps-badge").className = "text-[11px] font-bold px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/50";
+                document.getElementById("gps-badge").className = "text-[11px] font-bold px-2.5 py-1 rounded-full bg-[#e7f8f3] text-[#008069] border border-[#00a884]/50";
 
                 activarWatchPosition(rutaActivaDocId);
             } catch (error) {
@@ -1177,7 +1179,7 @@
             document.getElementById("btn-iniciar-ruta").classList.remove("hidden");
             document.getElementById("btn-finalizar-ruta").classList.add("hidden");
             document.getElementById("gps-badge").innerText = "GPS: Inactivo";
-            document.getElementById("gps-badge").className = "text-[11px] font-bold px-2.5 py-1 rounded-full bg-[#171010] text-red-300 border border-red-800/60";
+            document.getElementById("gps-badge").className = "text-[11px] font-bold px-2.5 py-1 rounded-full bg-[#f0f2f5] text-[#54656f] border border-[#d1d7db]";
         };
 
         window.marcarDestinoEntregado = async function(docId, idxDestino) {
@@ -1228,7 +1230,7 @@
             document.getElementById("total-rutas").innerText = `${rutasActivas.length} rutas registradas`;
 
             if (rutasActivas.length === 0) {
-                cont.innerHTML = `<p class="text-xs text-stone-500 text-center py-6">No hay rutas motorizadas registradas aún.</p>`;
+                cont.innerHTML = `<p class="text-xs text-[#8696a0] text-center py-6">No hay rutas motorizadas registradas aún.</p>`;
                 return;
             }
 
@@ -1248,18 +1250,18 @@
                 const pilotoNombre = escapeHTML(ruta.piloto || (ruta.motorizados && ruta.motorizados[1]) || "Sin piloto (Solo)");
 
                 const card = document.createElement("div");
-                card.className = "bg-[#060708] border border-stone-800 rounded-xl p-4 space-y-3";
+                card.className = "bg-[#f0f2f5] border border-[#d1d7db] rounded-xl p-4 space-y-3";
 
                 let destinosHtml = `<div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">`;
                 (ruta.destinos || []).forEach((d, idx) => {
                     destinosHtml += `
                         <div onclick="marcarDestinoEntregado('${escapeHTML(ruta.docId)}', ${idx})" class="flex items-center justify-between p-2 rounded-lg border cursor-pointer transition ${
                             d.entregado
-                                ? "bg-amber-500/15 border-amber-500/50 text-amber-200"
-                                : "bg-[#0d0f12] border-stone-800 text-stone-300 hover:border-amber-500/40"
+                                ? "bg-[#e7f8f3] border-[#00a884] text-[#006b57]"
+                                : "bg-white border-[#d1d7db] text-[#111b21] hover:border-[#00a884]"
                         }">
                             <div class="flex items-center gap-2 text-xs">
-                                <input type="checkbox" ${d.entregado ? "checked" : ""} class="accent-amber-500 pointer-events-none">
+                                <input type="checkbox" ${d.entregado ? "checked" : ""} class="accent-[#00a884] pointer-events-none">
                                 <span class="${d.entregado ? "line-through opacity-80" : ""}">${escapeHTML(d.nombre)}</span>
                             </div>
                             <span class="text-[10px] font-semibold whitespace-nowrap ml-2">
@@ -1271,42 +1273,42 @@
                 destinosHtml += `</div>`;
 
                 card.innerHTML = `
-                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-stone-800 pb-2.5">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#d1d7db] pb-2.5">
                         <div class="space-y-1">
                             <div class="flex items-center gap-2 flex-wrap">
-                                <span class="text-xs px-2.5 py-1 rounded bg-amber-500/20 border border-amber-500/50 text-amber-300 font-extrabold">
+                                <span class="text-xs px-2.5 py-1 rounded bg-[#e7f8f3] border border-[#00a884]/50 text-[#008069] font-extrabold">
                                     PARRILLERO (APP/GPS): ${parrilleroNombre}
                                 </span>
-                                <span class="text-xs px-2.5 py-1 rounded bg-[#14171c] border border-stone-700 text-stone-200 font-bold">
+                                <span class="text-xs px-2.5 py-1 rounded bg-white border border-[#d1d7db] text-[#111b21] font-bold">
                                     PILOTO: ${pilotoNombre}
                                 </span>
                                 <span class="text-[11px] px-2 py-0.5 rounded-full font-bold ${
                                     ruta.gpsActivo
-                                        ? "bg-amber-500/20 text-amber-300 border border-amber-500/50"
-                                        : "bg-red-950/60 text-red-300 border border-red-800/60"
+                                        ? "bg-[#e7f8f3] text-[#008069] border border-[#00a884]/50"
+                                        : "bg-white text-[#54656f] border border-[#d1d7db]"
                                 }">
                                     ${ruta.gpsActivo ? "EN RUTA (GPS EN VIVO)" : "FINALIZADA"}
                                 </span>
                             </div>
-                            <p class="text-[11px] text-stone-400">
-                                Salida: ${escapeHTML(ruta.fecha)} • ${escapeHTML(ruta.horaSalida)} | Avance: <strong class="text-stone-200">${entregados}/${total} entregados</strong>
+                            <p class="text-[11px] text-[#54656f]">
+                                Salida: ${escapeHTML(ruta.fecha)} • ${escapeHTML(ruta.horaSalida)} | Avance: <strong class="text-[#111b21]">${entregados}/${total} entregados</strong>
                             </p>
-                            <p class="text-xs text-stone-300">Detalle: ${escapeHTML(ruta.detalle)}</p>
+                            <p class="text-xs text-[#111b21]">Detalle: ${escapeHTML(ruta.detalle)}</p>
                         </div>
 
                         <div class="flex items-center gap-2 flex-wrap">
                             ${
                                 urlMaps
-                                    ? `<a href="${urlMaps}" target="_blank" rel="noopener noreferrer" class="bg-amber-500 hover:bg-amber-400 text-stone-950 text-xs font-bold px-3.5 py-2 rounded-lg border border-amber-300/40 transition shadow">
+                                    ? `<a href="${urlMaps}" target="_blank" rel="noopener noreferrer" class="bg-[#00a884] hover:bg-[#008f70] text-white text-xs font-bold px-3.5 py-2 rounded-lg border border-[#008069]/30 transition shadow-sm">
                                         Abrir en Google Maps
                                        </a>`
-                                    : `<span class="text-[11px] text-stone-400 bg-[#0d0f12] border border-stone-800 px-3 py-1.5 rounded-lg">
+                                    : `<span class="text-[11px] text-[#54656f] bg-white border border-[#d1d7db] px-3 py-1.5 rounded-lg">
                                         ${escapeHTML(ruta.ultimaActualizacionGPS)}
                                        </span>`
                             }
                             ${
                                 usuarioActual.role === "jefe"
-                                    ? `<button onclick="eliminarRuta('${escapeHTML(ruta.docId)}')" class="bg-red-900/50 hover:bg-red-700 text-red-200 border border-red-700/60 text-xs font-bold px-2.5 py-2 rounded-lg transition">X</button>`
+                                    ? `<button onclick="eliminarRuta('${escapeHTML(ruta.docId)}')" class="bg-white hover:bg-red-50 text-red-700 border border-red-300 text-xs font-bold px-2.5 py-2 rounded-lg transition">X</button>`
                                     : ""
                             }
                         </div>
@@ -1315,12 +1317,12 @@
                     ${
                         tieneCoordenadas
                             ? `<div class="space-y-2">
-                                <p class="text-[11px] text-stone-400">
-                                    Coordenada GPS en vivo (${parrilleroNombre}): <span class="text-amber-300 font-mono">${escapeHTML(ruta.lat)}, ${escapeHTML(ruta.lng)}</span> • Actualizado: <strong class="text-stone-200">${escapeHTML(ruta.ultimaActualizacionGPS)}</strong>
+                                <p class="text-[11px] text-[#54656f]">
+                                    Coordenada GPS en vivo (${parrilleroNombre}): <span class="text-[#008069] font-mono font-semibold">${escapeHTML(ruta.lat)}, ${escapeHTML(ruta.lng)}</span> • Actualizado: <strong class="text-[#111b21]">${escapeHTML(ruta.ultimaActualizacionGPS)}</strong>
                                 </p>
                                 ${
                                     ruta.gpsActivo
-                                        ? `<div class="rounded-lg overflow-hidden border border-stone-800 h-52 bg-stone-900">
+                                        ? `<div class="rounded-lg overflow-hidden border border-[#d1d7db] h-52 bg-white">
                                             <iframe
                                                 title="Ubicación en tiempo real"
                                                 src="${embedMapsUrl}"
@@ -1336,7 +1338,7 @@
                     }
 
                     <div>
-                        <p class="text-[11px] uppercase font-bold text-stone-400 mb-1">Dependencias asignadas (Parrillero toca para marcar entrega):</p>
+                        <p class="text-[11px] uppercase font-bold text-[#54656f] mb-1">Dependencias asignadas (Parrillero toca para marcar entrega):</p>
                         ${destinosHtml}
                     </div>
                 `;
