@@ -1,9 +1,11 @@
-const CACHE_NAME = 'rutas-mppd-v1';
+const CACHE_NAME = 'rutas-mppd-v2';
 const ASSETS = [
   './',
   './index.html',
   './manifest.json',
-  './escudo-mppd.png'
+  './icono-moto.png',
+  './escudo-mppd.png',
+  './fondo-moto-mppd.jpg'
 ];
 
 self.addEventListener('install', (event) => {
@@ -24,11 +26,17 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
+
+  const url = new URL(event.request.url);
+  if (url.origin !== self.location.origin) return;
+
   event.respondWith(
     fetch(event.request)
       .then((response) => {
-        const clone = response.clone();
-        caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone)).catch(() => {});
+        if (response && response.ok) {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone)).catch(() => {});
+        }
         return response;
       })
       .catch(() => caches.match(event.request))
